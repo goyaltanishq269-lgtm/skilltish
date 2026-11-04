@@ -5,6 +5,7 @@ export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
 export interface ISubmission extends Document {
   taskId: string;
   studentId: string;
+  studentName?: string;
   proofUrl: string;
   notes: string;
   status: SubmissionStatus;
@@ -17,6 +18,7 @@ const SubmissionSchema = new Schema<ISubmission>(
   {
     taskId: { type: String, required: true, index: true },
     studentId: { type: String, required: true, index: true },
+    studentName: { type: String },
     proofUrl: { type: String, required: true },
     notes: { type: String, default: '' },
     status: {

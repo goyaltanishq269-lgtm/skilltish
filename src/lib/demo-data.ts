@@ -38,6 +38,7 @@ export interface MockSubmission {
   taskId: string;
   task?: MockTask;
   studentId: string;
+  studentName?: string;
   student?: MockUser;
   proofUrl: string;
   notes: string;
@@ -53,13 +54,22 @@ export interface MockBadge {
   skill: string;
   taskId: string;
   studentId: string;
+  studentName?: string;
   issuerId?: string;
+  issuerName?: string;
+  companyName?: string;
+  proofUrl?: string;
   issuedAt: string;
+  task?: {
+    title?: string;
+    duration?: string;
+    companyName?: string;
+  };
 }
 
 export const INITIAL_USERS: MockUser[] = [
   {
-    _id: '660000000000000000000001',
+    _id: 'student-1',
     name: 'Alex Chen',
     email: 'student@college.edu',
     role: 'student',
@@ -71,7 +81,7 @@ export const INITIAL_USERS: MockUser[] = [
     createdAt: '2026-01-10T10:00:00.000Z',
   },
   {
-    _id: '660000000000000000000002',
+    _id: 'company-1',
     name: 'Priya Sharma',
     email: 'founder@startup.com',
     role: 'poster',
@@ -135,7 +145,8 @@ export const INITIAL_SUBMISSIONS: MockSubmission[] = [
   {
     _id: '660000000000000000000021',
     taskId: '660000000000000000000013',
-    studentId: '660000000000000000000001',
+    studentId: 'student-1',
+    studentName: 'Alex Chen',
     proofUrl: 'https://github.com/alexchen/nextjs-app-router-migration',
     notes: 'Implemented the new App Router route handler with streaming JSON support, Zod runtime validation, and 100% unit test coverage. Tested against edge latency benchmarks.',
     status: 'pending',
@@ -144,7 +155,8 @@ export const INITIAL_SUBMISSIONS: MockSubmission[] = [
   {
     _id: '660000000000000000000022',
     taskId: '660000000000000000000014',
-    studentId: '660000000000000000000001',
+    studentId: 'student-1',
+    studentName: 'Alex Chen',
     proofUrl: 'https://github.com/alexchen/nextauth-credentials-demo',
     notes: 'Configured credentials provider with NextAuth JWT strategy, role claims in session callbacks, and middleware route guards.',
     status: 'approved',
@@ -157,20 +169,28 @@ export const INITIAL_SUBMISSIONS: MockSubmission[] = [
 export const INITIAL_BADGES: MockBadge[] = [
   {
     _id: '660000000000000000000031',
-    title: 'Auth Security Badge',
+    title: 'Auth Security Specialist',
     skill: 'NextAuth',
     taskId: '660000000000000000000014',
-    studentId: '660000000000000000000001',
-    issuerId: '660000000000000000000002',
+    studentId: 'student-1',
+    studentName: 'Alex Chen',
+    issuerId: 'company-1',
+    issuerName: 'Priya Sharma',
+    companyName: 'DevStudio',
+    proofUrl: 'https://github.com/alexchen/nextauth-credentials-demo',
     issuedAt: '2026-10-13T09:30:00.000Z',
   },
   {
     _id: '660000000000000000000032',
-    title: 'Frontend UI Champion Badge',
+    title: 'Frontend UI Champion',
     skill: 'React',
     taskId: '660000000000000000000011',
-    studentId: '660000000000000000000001',
-    issuerId: '660000000000000000000002',
+    studentId: 'student-1',
+    studentName: 'Alex Chen',
+    issuerId: 'company-1',
+    issuerName: 'Priya Sharma',
+    companyName: 'DevStudio',
+    proofUrl: 'https://github.com/alexchen/pricing-calculator',
     issuedAt: '2026-10-05T14:00:00.000Z',
   },
 ];

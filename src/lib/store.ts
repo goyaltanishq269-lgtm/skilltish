@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import connectToDatabase from './mongodb';
-import { User, Task, Submission, Badge } from '@/models';
+import { User, Task, Submission, Badge } from '../models';
 import {
   INITIAL_USERS,
   INITIAL_TASKS,
@@ -83,11 +83,43 @@ export async function getUserById(id: string): Promise<any | null> {
   const { isConnected } = await connectToDatabase();
   if (isConnected) {
     await ensureSeeded();
+    let user = null;
     if (mongoose.Types.ObjectId.isValid(id)) {
-      return await User.findById(id).lean();
+      user = await User.findById(id).lean();
     }
+    if (!user) {
+      if (id === 'student-1' || id === '660000000000000000000001') {
+        user = await User.findOne({
+          $or: [
+            { _id: 'student-1' },
+            { _id: '660000000000000000000001' },
+            { email: 'student@college.edu' },
+          ],
+        }).lean();
+      } else if (id === 'company-1' || id === '660000000000000000000002') {
+        user = await User.findOne({
+          $or: [
+            { _id: 'company-1' },
+            { _id: '660000000000000000000002' },
+            { email: 'founder@startup.com' },
+            { email: 'priya@devstudio.io' },
+          ],
+        }).lean();
+      } else {
+        user = await User.findOne({ $or: [{ _id: id }, { email: id }] }).lean();
+      }
+    }
+    if (user) return user;
   }
-  return mem.users.find((u) => u._id === id) || null;
+
+  let memUser = mem.users.find((u) => u._id === id);
+  if (!memUser && (id === 'student-1' || id === '660000000000000000000001')) {
+    memUser = mem.users.find((u) => u.email === 'student@college.edu');
+  }
+  if (!memUser && (id === 'company-1' || id === '660000000000000000000002')) {
+    memUser = mem.users.find((u) => u.email === 'founder@startup.com' || u.email === 'priya@devstudio.io');
+  }
+  return memUser || null;
 }
 
 // Task methods
@@ -249,32 +281,70 @@ export async function createTask(data: {
 
 // Submission methods
 export async function getSubmissions(filters?: { posterId?: string; studentId?: string; taskId?: string }): Promise<any[]> {
+  const studentIds = filters?.studentId
+    ? (filters.studentId === 'student-1' || filters.studentId === '660000000000000000000001'
+        ? ['student-1', '660000000000000000000001']
+        : [filters.studentId])
+    : null;
+
   const { isConnected } = await connectToDatabase();
   if (isConnected) {
     await ensureSeeded();
     const query: any = {};
-    if (filters?.taskId && mongoose.Types.ObjectId.isValid(filters.taskId)) {
+    if (filters?.taskId) {
       query.taskId = filters.taskId;
     }
-    if (filters?.studentId && mongoose.Types.ObjectId.isValid(filters.studentId)) {
-      query.studentId = filters.studentId;
+    if (studentIds) {
+      query.studentId = { $in: studentIds };
     }
 
-    let subs = await Submission.find(query)
-      .populate('taskId')
-      .populate('studentId', 'name email college avatar bio skills')
-      .sort({ createdAt: -1 })
-      .lean();
+    let subs = await Submission.find(query).sort({ createdAt: -1 }).lean();
+
+    // Enrich with tasks & students
+    const taskIds = Array.from(new Set(subs.map((s: any) => String(s.taskId))));
+    const tasks = await Task.find({ _id: { $in: taskIds } }).lean();
+    const taskMap = new Map(tasks.map((t: any) => [String(t._id), t]));
+
+    const sIds = Array.from(new Set(subs.map((s: any) => String(s.studentId))));
+    const users = await User.find({
+      $or: [
+        { _id: { $in: sIds.filter((id) => mongoose.Types.ObjectId.isValid(id)) } },
+        { email: 'student@college.edu' },
+      ],
+    }).lean();
+    const userMap = new Map();
+    users.forEach((u: any) => {
+      userMap.set(String(u._id), u);
+      if (u.email === 'student@college.edu') userMap.set('student-1', u);
+    });
+
+    const enriched = subs.map((s: any) => {
+      const task = taskMap.get(String(s.taskId));
+      const student = userMap.get(String(s.studentId)) || {
+        _id: s.studentId,
+        name: s.studentName || 'Alex Chen',
+        email: 'student@college.edu',
+        college: 'Apex Tech Institute',
+      };
+
+      return {
+        ...s,
+        task: task
+          ? {
+              ...task,
+              companyName: task.companyName || 'DevStudio',
+              duration: task.duration || '3 days',
+            }
+          : undefined,
+        student,
+      };
+    });
 
     if (filters?.posterId) {
-      subs = subs.filter((s: any) => s.taskId && String(s.taskId.posterId) === String(filters.posterId));
+      return enriched.filter((s: any) => s.task && String(s.task.posterId) === String(filters.posterId));
     }
 
-    return subs.map((s: any) => ({
-      ...s,
-      task: s.taskId,
-      student: s.studentId,
-    }));
+    return enriched;
   }
 
   // Memory fallback
@@ -282,17 +352,30 @@ export async function getSubmissions(filters?: { posterId?: string; studentId?: 
   if (filters?.taskId) {
     list = list.filter((s) => s.taskId === filters.taskId);
   }
-  if (filters?.studentId) {
-    list = list.filter((s) => s.studentId === filters.studentId);
+  if (studentIds) {
+    list = list.filter((s) => studentIds.includes(s.studentId));
   }
 
   const enriched = list.map((s) => {
     const task = mem.tasks.find((t) => t._id === s.taskId);
-    const student = mem.users.find((u) => u._id === s.studentId);
+    const student = mem.users.find(
+      (u) => u._id === s.studentId || (studentIds && studentIds.includes(u._id))
+    );
     return {
       ...s,
-      task,
-      student,
+      task: task
+        ? {
+            ...task,
+            companyName: task.companyName || 'DevStudio',
+            duration: task.duration || '3 days',
+          }
+        : undefined,
+      student: student || {
+        _id: s.studentId,
+        name: s.studentName || 'Alex Chen',
+        email: 'student@college.edu',
+        college: 'Apex Tech Institute',
+      },
     };
   });
 
@@ -306,6 +389,7 @@ export async function getSubmissions(filters?: { posterId?: string; studentId?: 
 export async function createSubmission(data: {
   taskId: string;
   studentId: string;
+  studentName?: string;
   proofUrl: string;
   notes?: string;
 }): Promise<any> {
@@ -313,8 +397,9 @@ export async function createSubmission(data: {
   if (isConnected) {
     await ensureSeeded();
     const doc = await Submission.create({
-      taskId: new mongoose.Types.ObjectId(data.taskId),
-      studentId: new mongoose.Types.ObjectId(data.studentId),
+      taskId: data.taskId,
+      studentId: data.studentId,
+      studentName: data.studentName,
       proofUrl: data.proofUrl,
       notes: data.notes || '',
       status: 'pending',
@@ -326,6 +411,7 @@ export async function createSubmission(data: {
     _id: 'sub_' + Date.now(),
     taskId: data.taskId,
     studentId: data.studentId,
+    studentName: data.studentName,
     proofUrl: data.proofUrl,
     notes: data.notes || '',
     status: 'pending',
@@ -339,32 +425,69 @@ export async function updateSubmissionStatus(
   submissionId: string,
   status: 'approved' | 'rejected',
   feedback?: string,
-  issuerId?: string
+  issuerInfo?: string | { issuerId?: string; issuerName?: string; companyName?: string }
 ): Promise<any> {
+  const issuerId = typeof issuerInfo === 'string' ? issuerInfo : issuerInfo?.issuerId || 'company-1';
+  const issuerName = typeof issuerInfo === 'object' ? issuerInfo?.issuerName || 'Priya Sharma' : 'Priya Sharma';
+  const companyName = typeof issuerInfo === 'object' ? issuerInfo?.companyName || 'DevStudio' : 'DevStudio';
+
   const { isConnected } = await connectToDatabase();
   if (isConnected) {
     await ensureSeeded();
-    const sub = await Submission.findByIdAndUpdate(
-      submissionId,
-      { status, feedback: feedback || '', reviewedAt: new Date() },
-      { new: true }
-    )
-      .populate('taskId')
-      .populate('studentId')
-      .lean();
 
-    if (sub && status === 'approved') {
-      const task: any = sub.taskId;
+    let sub: any = null;
+    if (mongoose.Types.ObjectId.isValid(submissionId)) {
+      sub = await Submission.findByIdAndUpdate(
+        submissionId,
+        { status, feedback: feedback || '', reviewedAt: new Date() },
+        { new: true }
+      ).lean();
+    } else {
+      sub = await Submission.findOneAndUpdate(
+        { _id: submissionId },
+        { status, feedback: feedback || '', reviewedAt: new Date() },
+        { new: true }
+      ).lean();
+    }
+
+    if (!sub) return null;
+
+    if (status === 'approved') {
+      let task: any = null;
+      if (mongoose.Types.ObjectId.isValid(sub.taskId)) {
+        task = await Task.findByIdAndUpdate(sub.taskId, { status: 'completed' }, { new: true }).lean();
+      } else {
+        task = await Task.findOneAndUpdate({ _id: sub.taskId }, { status: 'completed' }, { new: true }).lean();
+      }
+
+      let studentName = sub.studentName;
+      if (!studentName) {
+        const student = await User.findOne({
+          $or: [
+            { _id: sub.studentId },
+            { email: 'student@college.edu' },
+          ],
+        }).lean();
+        studentName = student?.name || 'Alex Chen';
+      }
+
       const primarySkill = task?.skillsRequired?.[0] || 'Technical Skill';
+      const badgeTitle = task?.title ? `${task.title} Specialist` : `${primarySkill} Verified Specialist`;
+
       await Badge.create({
-        title: `${task?.title || 'Micro-Task'} Verified Badge`,
+        title: badgeTitle,
         skill: primarySkill,
-        taskId: task?._id || sub.taskId,
-        studentId: (sub.studentId as any)?._id || sub.studentId,
-        issuerId: issuerId ? new mongoose.Types.ObjectId(issuerId) : undefined,
+        taskId: String(sub.taskId),
+        studentId: String(sub.studentId),
+        studentName,
+        issuerId: String(issuerId),
+        issuerName,
+        companyName: companyName || task?.companyName || 'DevStudio',
+        proofUrl: sub.proofUrl,
         issuedAt: new Date(),
       });
     }
+
     return sub;
   }
 
@@ -379,15 +502,34 @@ export async function updateSubmissionStatus(
   const sub = mem.submissions[subIndex];
   if (status === 'approved') {
     const task = mem.tasks.find((t) => t._id === sub.taskId);
+    if (task) {
+      task.status = 'completed';
+    }
+
+    const student = mem.users.find((u) => u._id === sub.studentId || u.email === 'student@college.edu');
+    const studentName = sub.studentName || student?.name || 'Alex Chen';
     const primarySkill = task?.skillsRequired?.[0] || 'Technical Skill';
+    const badgeTitle = task?.title ? `${task.title} Specialist` : `${primarySkill} Verified Specialist`;
+
     const newBadge: MockBadge = {
       _id: 'badge_' + Date.now(),
-      title: `${task?.title || 'Micro-Task'} Verified Badge`,
+      title: badgeTitle,
       skill: primarySkill,
       taskId: sub.taskId,
       studentId: sub.studentId,
-      issuerId: issuerId,
+      studentName,
+      issuerId,
+      issuerName,
+      companyName: companyName || task?.companyName || 'DevStudio',
+      proofUrl: sub.proofUrl,
       issuedAt: new Date().toISOString(),
+      task: task
+        ? {
+            title: task.title,
+            duration: task.duration,
+            companyName: task.companyName || companyName,
+          }
+        : undefined,
     };
     mem.badges.unshift(newBadge);
   }
@@ -397,25 +539,63 @@ export async function updateSubmissionStatus(
 
 // Badge methods
 export async function getBadges(studentId?: string): Promise<any[]> {
+  const studentIds = studentId
+    ? (studentId === 'student-1' || studentId === '660000000000000000000001'
+        ? ['student-1', '660000000000000000000001']
+        : [studentId])
+    : null;
+
   const { isConnected } = await connectToDatabase();
   if (isConnected) {
     await ensureSeeded();
     const query: any = {};
-    if (studentId && mongoose.Types.ObjectId.isValid(studentId)) {
-      query.studentId = studentId;
+    if (studentIds) {
+      query.studentId = { $in: studentIds };
     }
-    return await Badge.find(query).populate('taskId', 'title duration').sort({ issuedAt: -1 }).lean();
+    const badges = await Badge.find(query).sort({ issuedAt: -1 }).lean();
+
+    const taskIds = Array.from(new Set(badges.map((b: any) => String(b.taskId))));
+    const tasks = await Task.find({ _id: { $in: taskIds } }).lean();
+    const taskMap = new Map(tasks.map((t: any) => [String(t._id), t]));
+
+    return badges.map((b: any) => {
+      const task = taskMap.get(String(b.taskId));
+      return {
+        ...b,
+        task: task
+          ? {
+              title: task.title,
+              duration: task.duration,
+              companyName: task.companyName || b.companyName || 'DevStudio',
+            }
+          : {
+              title: b.title,
+              duration: '3 days',
+              companyName: b.companyName || 'DevStudio',
+            },
+      };
+    });
   }
 
   let list = [...mem.badges];
-  if (studentId) {
-    list = list.filter((b) => b.studentId === studentId);
+  if (studentIds) {
+    list = list.filter((b) => studentIds.includes(b.studentId));
   }
   return list.map((b) => {
     const task = mem.tasks.find((t) => t._id === b.taskId);
     return {
       ...b,
-      task: task ? { title: task.title, duration: task.duration } : undefined,
+      task: task
+        ? {
+            title: task.title,
+            duration: task.duration,
+            companyName: task.companyName || b.companyName || 'DevStudio',
+          }
+        : {
+            title: b.title,
+            duration: '3 days',
+            companyName: b.companyName || 'DevStudio',
+          },
     };
   });
 }

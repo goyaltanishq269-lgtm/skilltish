@@ -16,9 +16,15 @@ export async function PATCH(
       return NextResponse.json({ error: "Status must be 'approved' or 'rejected'" }, { status: 400 });
     }
 
-    const issuerId = session?.user ? (session.user as any).id : body.issuerId;
+    const issuerId = session?.user ? (session.user as any).id : (body.issuerId || 'company-1');
+    const issuerName = session?.user?.name || body.issuerName || 'Priya Sharma';
+    const companyName = (session?.user as any)?.company || body.companyName || 'DevStudio';
 
-    const updated = await updateSubmissionStatus(params.id, status, feedback, issuerId);
+    const updated = await updateSubmissionStatus(params.id, status, feedback, {
+      issuerId,
+      issuerName,
+      companyName,
+    });
     if (!updated) {
       return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
     }

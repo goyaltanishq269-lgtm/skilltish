@@ -263,7 +263,7 @@ export default function DashboardPage() {
                               {sub.student?.name || 'Alex Chen'}
                             </h3>
                             <Link
-                              href={`/profile/${sub.student?._id || sub.studentId || '660000000000000000000001'}`}
+                              href={`/profile/${sub.student?._id || sub.studentId || 'student-1'}`}
                               className="text-xs font-semibold text-indigo-600 hover:underline"
                             >
                               View Portfolio &rarr;

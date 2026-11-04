@@ -21,6 +21,7 @@ import {
   Copy,
   Clock,
   ArrowRight,
+  Building2,
 } from 'lucide-react';
 
 export default function StudentProfilePage() {
@@ -207,9 +208,10 @@ export default function StudentProfilePage() {
             </p>
             <Link
               href="/feed"
-              className="text-xs font-bold text-indigo-600 hover:underline"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow-sm"
             >
-              Browse Active Sprints &rarr;
+              <span>Explore Tasks to Earn Proof</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         ) : (
@@ -226,13 +228,13 @@ export default function StudentProfilePage() {
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Production Deliverables</span>
+              <span>Verified Proof of Work</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-              Completed Micro-Tasks & Proof of Work
+              Verified Proof of Work
             </h2>
             <p className="text-xs text-slate-500">
-              Audited code repositories, pull requests, and design artifacts.
+              Audited code repositories, pull requests, and production deliverables.
             </p>
           </div>
         </div>
@@ -240,15 +242,16 @@ export default function StudentProfilePage() {
         {completedTasks.length === 0 ? (
           <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-8 text-center max-w-md mx-auto">
             <CheckCircle2 className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-            <h4 className="text-sm font-bold text-slate-700">No Completed Sprints Yet</h4>
+            <h4 className="text-sm font-bold text-slate-700">No Approved Proof Yet</h4>
             <p className="text-xs text-slate-500 mt-1 mb-4">
               Approved proof of work will be showcased here with direct links.
             </p>
             <Link
               href="/feed"
-              className="text-xs font-bold text-indigo-600 hover:underline"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow-sm"
             >
-              Explore Micro-Tasks &rarr;
+              <span>Explore Tasks to Earn Proof</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         ) : (
@@ -256,6 +259,15 @@ export default function StudentProfilePage() {
             {completedTasks.map((sub: any) => {
               const isGithub = sub.proofUrl?.includes('github.com');
               const isFigma = sub.proofUrl?.includes('figma.com');
+              const companyName = sub.task?.companyName || sub.task?.poster?.company || 'DevStudio';
+              const approvedDate = sub.reviewedAt || sub.updatedAt || sub.createdAt;
+              const formattedApprovedDate = approvedDate
+                ? new Date(approvedDate).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })
+                : 'Verified';
 
               return (
                 <div
@@ -264,10 +276,22 @@ export default function StudentProfilePage() {
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-3">
                     <div>
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                           Approved
                         </span>
+
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/60">
+                          <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                          {companyName}
+                        </span>
+
+                        <span className="text-xs text-slate-500 flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-slate-400" />
+                          Approved {formattedApprovedDate}
+                        </span>
+
                         {sub.task?.duration && (
                           <span className="text-xs text-slate-500 flex items-center gap-1">
                             <Clock className="w-3 h-3 text-slate-400" />
@@ -275,6 +299,7 @@ export default function StudentProfilePage() {
                           </span>
                         )}
                       </div>
+
                       <h3 className="text-lg font-bold text-slate-900">
                         {sub.task?.title || 'Completed Micro-Task'}
                       </h3>
@@ -283,7 +308,7 @@ export default function StudentProfilePage() {
                     <a
                       href={sub.proofUrl}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm self-start"
                     >
                       {isGithub ? (
@@ -311,7 +336,7 @@ export default function StudentProfilePage() {
                     <div className="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-bold block">Verified by Startup Poster:</span>
+                        <span className="font-bold block">Verified by Startup Poster ({companyName}):</span>
                         <p className="italic text-emerald-800">&ldquo;{sub.feedback}&rdquo;</p>
                       </div>
                     </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, ShieldCheck, Calendar, Sparkles } from 'lucide-react';
+import { Award, ShieldCheck, Calendar, Sparkles, Building2 } from 'lucide-react';
 
 interface BadgeCardProps {
   badge: {
@@ -7,9 +7,12 @@ interface BadgeCardProps {
     title: string;
     skill: string;
     issuedAt: string;
+    companyName?: string;
+    issuerName?: string;
     task?: {
       title?: string;
       duration?: string;
+      companyName?: string;
     };
   };
 }
@@ -20,6 +23,8 @@ export default function BadgeCard({ badge }: BadgeCardProps) {
     day: 'numeric',
     year: 'numeric',
   });
+
+  const company = badge.companyName || badge.task?.companyName;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-b from-white to-indigo-50/30 p-5 shadow-sm hover:shadow-md transition group">
@@ -40,10 +45,16 @@ export default function BadgeCard({ badge }: BadgeCardProps) {
         {badge.title}
       </h4>
 
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800">
           {badge.skill}
         </span>
+        {company && (
+          <span className="inline-flex items-center gap-1 text-xs text-slate-600 font-medium">
+            <Building2 className="w-3 h-3 text-slate-400" />
+            {company}
+          </span>
+        )}
         {badge.task?.duration && (
           <span className="text-[11px] text-slate-500">
             • {badge.task.duration} task

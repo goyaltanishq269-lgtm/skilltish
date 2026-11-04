@@ -5,7 +5,11 @@ export interface IBadge extends Document {
   skill: string;
   taskId: string;
   studentId: string;
+  studentName?: string;
   issuerId: string;
+  issuerName?: string;
+  companyName?: string;
+  proofUrl?: string;
   issuedAt: Date;
 }
 
@@ -15,7 +19,11 @@ const BadgeSchema = new Schema<IBadge>(
     skill: { type: String, required: true },
     taskId: { type: String, required: true },
     studentId: { type: String, required: true, index: true },
+    studentName: { type: String },
     issuerId: { type: String, required: true },
+    issuerName: { type: String },
+    companyName: { type: String },
+    proofUrl: { type: String },
     issuedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }

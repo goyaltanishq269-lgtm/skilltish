@@ -37,9 +37,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Please provide a valid GitHub repository or Figma URL' }, { status: 400 });
     }
 
+    const studentName = session?.user?.name || body.studentName || 'Alex Chen';
+
     const submission = await createSubmission({
       taskId: body.taskId,
       studentId,
+      studentName,
       proofUrl: body.proofUrl.trim(),
       notes: body.notes || '',
     });

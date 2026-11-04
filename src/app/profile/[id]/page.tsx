@@ -23,7 +23,13 @@ import {
   ArrowRight,
   Building2,
   UserCheck,
+  Briefcase,
+  Mail,
+  X,
+  Send,
+  Check,
 } from 'lucide-react';
+import { playClickSound } from '@/lib/sounds';
 
 export default function StudentProfilePage() {
   const params = useParams();
@@ -33,6 +39,8 @@ export default function StudentProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isHireModalOpen, setIsHireModalOpen] = useState(false);
+  const [copiedTemplate, setCopiedTemplate] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     if (!id) return;
@@ -143,23 +151,37 @@ export default function StudentProfilePage() {
             </div>
 
             <div className="flex flex-col sm:flex-row md:flex-col items-start md:items-end gap-3.5 shrink-0">
-              {/* Primary "Share Public Portfolio" button */}
-              <button
-                onClick={copyShareLink}
-                className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 text-white text-xs font-semibold flex items-center gap-2 transition shadow-md cursor-pointer"
-              >
-                {copied ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-300 font-bold">Link Copied to Clipboard!</span>
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="w-4 h-4 text-zinc-400" />
-                    <span>Share Public Portfolio</span>
-                  </>
-                )}
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Hire Candidate Button */}
+                <button
+                  onClick={() => {
+                    playClickSound();
+                    setIsHireModalOpen(true);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-zinc-950 text-xs font-extrabold flex items-center gap-1.5 shadow-lg shadow-emerald-500/25 transition hover:scale-[1.02] active:scale-95 cursor-pointer"
+                >
+                  <Briefcase className="w-4 h-4 text-zinc-950" />
+                  <span>Hire Candidate</span>
+                </button>
+
+                {/* Primary "Share Public Portfolio" button */}
+                <button
+                  onClick={copyShareLink}
+                  className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 text-white text-xs font-semibold flex items-center gap-2 transition shadow-md cursor-pointer"
+                >
+                  {copied ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <span className="text-emerald-300 font-bold">Link Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-4 h-4 text-zinc-400" />
+                      <span>Share Portfolio</span>
+                    </>
+                  )}
+                </button>
+              </div>
 
               <div className="flex items-center gap-4 text-xs font-semibold text-zinc-400 pt-1">
                 <div className="text-center">
@@ -368,6 +390,114 @@ export default function StudentProfilePage() {
           )}
         </div>
       </div>
+
+      {/* RECRUITER HIRE CANDIDATE MODAL */}
+      {isHireModalOpen && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-card rounded-3xl border border-white/15 bg-zinc-950/95 max-w-lg w-full p-6 sm:p-7 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-indigo-600 flex items-center justify-center text-zinc-950 font-bold shadow-md shadow-emerald-500/20">
+                  <Briefcase className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-white text-base">Direct Recruiter Outreach</h3>
+                  <span className="text-[11px] font-mono text-emerald-400 font-semibold">
+                    Verified Candidate: {user.name}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsHireModalOpen(false)}
+                className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-xs space-y-1.5">
+                <div className="flex justify-between text-zinc-400">
+                  <span>Candidate Email:</span>
+                  <span className="font-mono text-zinc-200 font-semibold">{user.email}</span>
+                </div>
+                <div className="flex justify-between text-zinc-400">
+                  <span>Institution:</span>
+                  <span className="text-zinc-200">{user.college || 'Apex Tech Institute'}</span>
+                </div>
+                <div className="flex justify-between text-zinc-400">
+                  <span>Credentials Minted:</span>
+                  <span className="font-mono text-emerald-400 font-bold">{badges.length} Badges</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5">
+                  Subject Line:
+                </label>
+                <div className="px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs text-white font-medium">
+                  [SkillTish] Opportunity regarding verified credentials
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5">
+                  Outreach Message Draft:
+                </label>
+                <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 text-xs text-zinc-300 leading-relaxed font-mono whitespace-pre-line select-all">
+                  {`Hi ${user.name},
+
+I reviewed your verified proof-of-work portfolio on SkillTish and was impressed by your completed micro-tasks and verified credentials.
+
+We would love to schedule a brief 15-minute call regarding an engineering role at our startup.
+
+Best regards,
+Founder / Engineering Lead`}
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center gap-2.5">
+                <a
+                  href={`mailto:${user.email}?subject=${encodeURIComponent(
+                    '[SkillTish] Opportunity regarding verified credentials'
+                  )}&body=${encodeURIComponent(
+                    `Hi ${user.name},\n\nI reviewed your verified proof-of-work portfolio on SkillTish and was impressed by your completed micro-tasks and verified credentials.\n\nWe would love to schedule a brief 15-minute call regarding an engineering role at our startup.\n\nBest regards,\nFounder / Engineering Lead`
+                  )}`}
+                  className="flex-[2] py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-zinc-950 font-extrabold text-xs shadow-lg shadow-emerald-500/25 transition flex items-center justify-center gap-2 cursor-pointer text-center"
+                >
+                  <Send className="w-4 h-4 text-zinc-950" />
+                  <span>Send Email Outreach</span>
+                </a>
+
+                <button
+                  onClick={() => {
+                    playClickSound();
+                    navigator.clipboard.writeText(
+                      `Hi ${user.name},\n\nI reviewed your verified proof-of-work portfolio on SkillTish and was impressed by your completed micro-tasks and verified credentials.\n\nWe would love to schedule a brief 15-minute call regarding an engineering role at our startup.\n\nBest regards,\nFounder / Engineering Lead`
+                    );
+                    setCopiedTemplate(true);
+                    setTimeout(() => setCopiedTemplate(false), 2000);
+                  }}
+                  className="flex-1 py-3 px-3 rounded-xl border border-white/10 hover:bg-white/[0.06] text-zinc-300 hover:text-white font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  {copiedTemplate ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-emerald-400">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-zinc-400" />
+                      <span>Copy Draft</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

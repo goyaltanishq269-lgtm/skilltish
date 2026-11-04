@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import PostTaskModal from '@/components/PostTaskModal';
 import CodeInspectorDrawer from '@/components/CodeInspectorDrawer';
+import { playBadgeMintSound, playClickSound } from '@/lib/sounds';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -90,7 +91,8 @@ export default function DashboardPage() {
       }
 
       if (newStatus === 'approved') {
-        // High-Impact Approval Action: Confetti burst
+        // High-Impact Approval Action: Confetti burst & Harmonic mint chime
+        playBadgeMintSound();
         try {
           confetti({
             particleCount: 120,

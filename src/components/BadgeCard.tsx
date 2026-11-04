@@ -20,6 +20,7 @@ import {
   Link as LinkIcon,
   CheckCircle,
 } from 'lucide-react';
+import { playClickSound } from '@/lib/sounds';
 
 interface BadgeCardProps {
   badge: {
@@ -68,6 +69,10 @@ export default function BadgeCard({ badge }: BadgeCardProps) {
     y.set(mouseY);
   };
 
+  const handleMouseEnter = () => {
+    playClickSound();
+  };
+
   const handleMouseLeave = () => {
     x.set(0.5);
     y.set(0.5);
@@ -98,6 +103,7 @@ export default function BadgeCard({ badge }: BadgeCardProps) {
     <div style={{ perspective: 1200 }} className="w-full">
       <motion.div
         ref={cardRef}
+        onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         style={{

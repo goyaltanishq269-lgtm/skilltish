@@ -57,6 +57,16 @@ export default function LandingPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-24 relative z-10">
         {/* HERO SECTION */}
         <div className="text-center max-w-4xl mx-auto">
+          {/* Creator Badge in Hero */}
+          <div className="mb-4">
+            <span className="inline-flex items-center gap-2 bg-white/5 border border-white/10 hover:border-emerald-500/40 rounded-full px-4 py-1.5 text-xs text-zinc-300 transition-all shadow-sm">
+              <span className="text-emerald-400">✨</span>
+              <span>Engineered by <strong className="text-white font-semibold">Tanishq Goyal</strong></span>
+              <span className="text-zinc-500">•</span>
+              <span className="text-zinc-400 font-mono text-[11px]">Interactive Portfolio Sandbox</span>
+            </span>
+          </div>
+
           {/* Top Pill Tag */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-md text-xs font-semibold text-zinc-300 shadow-inner mb-6 hover:border-white/20 transition-all">
             <span className="flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />

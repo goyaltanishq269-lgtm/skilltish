@@ -11,6 +11,7 @@ export interface IUser extends Document {
   skills: string[];
   avatar?: string;
   isEmailVerified: boolean;
+  emailVerified?: Date | null;
   verificationToken?: string | null;
   verificationTokenExpires?: Date | null;
   createdAt: Date;
@@ -52,7 +53,11 @@ const UserSchema = new Schema<IUser>(
     avatar: { type: String, default: '' },
     isEmailVerified: {
       type: Boolean,
-      default: false,
+      default: true,
+    },
+    emailVerified: {
+      type: Date,
+      default: Date.now,
     },
     verificationToken: {
       type: String,

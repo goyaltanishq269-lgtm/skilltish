@@ -154,7 +154,7 @@ export default function LoginModal({
         }
 
         setSuccessMsg(
-          'Account created! Check your inbox to verify your email address.'
+          regData.message || 'Account created and verified! Signing you in...'
         );
 
         // Automatically establish NextAuth session

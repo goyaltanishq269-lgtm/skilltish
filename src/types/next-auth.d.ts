@@ -9,6 +9,7 @@ declare module 'next-auth' {
       college?: string;
       company?: string;
       isEmailVerified?: boolean;
+      emailVerified?: Date | string | null;
     } & DefaultSession['user'];
   }
 
@@ -18,6 +19,7 @@ declare module 'next-auth' {
     college?: string;
     company?: string;
     isEmailVerified?: boolean;
+    emailVerified?: Date | string | null;
   }
 }
 
@@ -28,5 +30,6 @@ declare module 'next-auth/jwt' {
     college?: string;
     company?: string;
     isEmailVerified?: boolean;
+    emailVerified?: Date | string | null;
   }
 }

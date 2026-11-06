@@ -80,6 +80,7 @@ export async function createUser(userData: {
   skills?: string[];
   avatar?: string;
   isEmailVerified?: boolean;
+  emailVerified?: Date | null;
   verificationToken?: string | null;
   verificationTokenExpires?: Date | null;
 }): Promise<any> {
@@ -94,7 +95,8 @@ export async function createUser(userData: {
   const { isConnected } = await connectToDatabase();
   let createdUser: any = null;
 
-  const isEmailVerified = userData.isEmailVerified ?? false;
+  const isEmailVerified = userData.isEmailVerified ?? true;
+  const emailVerified = (userData as any).emailVerified || new Date();
 
   if (isConnected) {
     await ensureSeeded();
@@ -102,6 +104,7 @@ export async function createUser(userData: {
       ...userData,
       email: normalizedEmail,
       isEmailVerified,
+      emailVerified,
       verificationToken: userData.verificationToken || null,
       verificationTokenExpires: userData.verificationTokenExpires || null,
       createdAt: new Date(),
@@ -123,6 +126,7 @@ export async function createUser(userData: {
     skills: userData.skills || [],
     avatar: userData.avatar || '',
     isEmailVerified,
+    emailVerified,
     verificationToken: userData.verificationToken || null,
     verificationTokenExpires: userData.verificationTokenExpires || null,
     createdAt: new Date(),

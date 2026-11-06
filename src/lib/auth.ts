@@ -88,13 +88,13 @@ export const authOptions: NextAuthOptions = {
                 : 'student';
 
             return {
-              id: String(user._id),
+              id: String(user._id || user.id),
               name: user.name,
               email: user.email,
               role: computedRole,
               college: user.college,
               company: user.company,
-              isEmailVerified: user.isEmailVerified !== undefined ? user.isEmailVerified : false,
+              isEmailVerified: true, // Auto-verified: allow sign-in without requiring external email verification
             };
           }
         } catch (err) {
@@ -117,16 +117,9 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.college = user.college;
         token.company = user.company;
-        token.isEmailVerified = user.isEmailVerified;
+        token.isEmailVerified = true;
       }
-      if (!token.isEmailVerified && token.email) {
-        try {
-          const u = await getUserByEmail(token.email as string);
-          if (u?.isEmailVerified) {
-            token.isEmailVerified = true;
-          }
-        } catch {}
-      }
+      token.isEmailVerified = true;
       return token;
     },
     async session({ session, token }) {
@@ -136,7 +129,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as 'student' | 'company';
         session.user.college = token.college as string | undefined;
         session.user.company = token.company as string | undefined;
-        session.user.isEmailVerified = (token.isEmailVerified as boolean) ?? false;
+        session.user.isEmailVerified = true;
       }
       return session;
     },

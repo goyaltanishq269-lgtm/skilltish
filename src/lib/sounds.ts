@@ -1,4 +1,4 @@
-// Web Audio API tactile sound generator for SkillTish
+// Subtle Web Audio API tactile feedback for SkillTish Enterprise
 
 let audioCtx: AudioContext | null = null;
 
@@ -34,7 +34,7 @@ export function toggleMute(): boolean {
 }
 
 /**
- * Short, crisp mechanical frequency pop (120Hz -> 80Hz exponentially decayed in 0.05s)
+ * Clean, subtle enterprise click feedback
  */
 export function playClickSound(): void {
   if (isMuted()) return;
@@ -47,24 +47,24 @@ export function playClickSound(): void {
 
     const now = ctx.currentTime;
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(130, now);
-    osc.frequency.exponentialRampToValueAtTime(75, now + 0.045);
+    osc.frequency.setValueAtTime(440, now);
+    osc.frequency.exponentialRampToValueAtTime(320, now + 0.03);
 
-    gain.gain.setValueAtTime(0.08, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+    gain.gain.setValueAtTime(0.02, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
 
     osc.connect(gain);
     gain.connect(ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.05);
+    osc.stop(now + 0.03);
   } catch {
-    // Ignore audio errors if blocked by browser policy
+    // Ignore audio errors
   }
 }
 
 /**
- * Rewarding harmonic chime chord (C5 + E5 + G5 with gentle exponential decay over 0.6s)
+ * Elegant harmonic confirmation chime for credential approvals
  */
 export function playBadgeMintSound(): void {
   if (isMuted()) return;
@@ -72,23 +72,21 @@ export function playBadgeMintSound(): void {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    // Frequencies for C5 (523.25Hz), E5 (659.25Hz), G5 (783.99Hz), C6 (1046.50Hz)
-    const frequencies = [523.25, 659.25, 783.99, 1046.5];
+    const frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5
     const now = ctx.currentTime;
 
     frequencies.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.05);
 
-      // Staggered bell-like decay
-      const startTime = now + idx * 0.04;
-      const duration = 0.55;
+      const startTime = now + idx * 0.05;
+      const duration = 0.45;
 
       gain.gain.setValueAtTime(0.0001, startTime);
-      gain.gain.linearRampToValueAtTime(0.06, startTime + 0.02);
+      gain.gain.linearRampToValueAtTime(0.04, startTime + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
       osc.connect(gain);

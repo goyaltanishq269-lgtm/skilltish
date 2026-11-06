@@ -10,12 +10,13 @@ import {
   Clock,
   CheckCircle2,
   Tag,
-  Coins,
-  ListChecks,
   FileText,
+  ListChecks,
+  Building,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { playClickSound } from '@/lib/sounds';
 
 interface PostTaskModalProps {
   isOpen: boolean;
@@ -58,14 +59,15 @@ export default function PostTaskModal({
   const [acceptanceCriteria, setAcceptanceCriteria] = useState(
     '• Fully responsive across mobile & desktop\n• Strict TypeScript typings without any `any`\n• Clean README documentation with setup steps'
   );
-  const [stipendOrPerks, setStipendOrPerks] = useState('₹2,000 + Verified Skill Badge');
+  const [stipendOrPerks, setStipendOrPerks] = useState(
+    '₹2,000 + Verified Skill Badge'
+  );
 
-  // UI State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Close on ESC key
+  // Close on ESC
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen && !loading) {
@@ -78,18 +80,23 @@ export default function PostTaskModal({
 
   if (!isOpen) return null;
 
-  // Tag helper
-  const handleAddSkill = (skill: string) => {
-    const trimmed = skill.trim();
+  const handleAddSkill = (skillToAdd: string) => {
+    const trimmed = skillToAdd.trim();
     if (!trimmed) return;
-    if (!selectedSkills.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
+    if (
+      !selectedSkills.some((s) => s.toLowerCase() === trimmed.toLowerCase())
+    ) {
       setSelectedSkills([...selectedSkills, trimmed]);
     }
     setSkillInput('');
   };
 
   const handleRemoveSkill = (skillToRemove: string) => {
-    setSelectedSkills(selectedSkills.filter((s) => s !== skillToRemove));
+    setSelectedSkills(
+      selectedSkills.filter(
+        (s) => s.toLowerCase() !== skillToRemove.toLowerCase()
+      )
+    );
   };
 
   const handleKeyDownSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -101,22 +108,19 @@ export default function PostTaskModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    playClickSound();
     setError(null);
-    setSuccessMessage(null);
 
-    // Validation
     if (!title.trim()) {
-      setError('Task title is required.');
+      setError('Task Title is required.');
       return;
     }
-    if (title.trim().length > 120) {
-      setError('Task title cannot exceed 120 characters.');
-      return;
-    }
+
     if (!description.trim()) {
-      setError('Task description and deliverables are required.');
+      setError('Task Description is required.');
       return;
     }
+
     if (selectedSkills.length === 0) {
       setError('Please specify at least one required skill.');
       return;
@@ -145,10 +149,10 @@ export default function PostTaskModal({
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to publish micro-task.');
+        throw new Error(data.error || 'Failed to publish challenge.');
       }
 
-      setSuccessMessage('🎉 Micro-Task published successfully to the opportunity feed!');
+      setSuccessMessage('[PUBLISHED] Challenge published successfully to opportunity backlog!');
 
       // Reset form fields
       setTitle('');
@@ -174,7 +178,7 @@ export default function PostTaskModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-[#1B241B]/30 animate-in fade-in duration-150 overflow-y-auto font-sans"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) {
           onClose();
@@ -182,100 +186,80 @@ export default function PostTaskModal({
       }}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="modal-title"
     >
-      <div className="glass-card rounded-3xl max-w-2xl w-full p-6 sm:p-8 border border-white/10 shadow-2xl relative my-8 max-h-[90vh] overflow-y-auto bg-[#0d0d12]/95 backdrop-blur-2xl">
+      <div className="bg-[#FBFBF9] rounded-2xl max-w-2xl w-full p-6 sm:p-7 border border-[#E4E8DE] shadow-[0_4px_20px_rgba(40,50,40,0.08)] relative my-8 max-h-[90vh] overflow-y-auto text-[#1B241B]">
         {/* Close Button */}
         <button
           onClick={onClose}
           disabled={loading}
           aria-label="Close modal"
-          className="absolute top-5 right-5 p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] transition disabled:opacity-50 cursor-pointer"
+          className="absolute top-5 right-5 p-1.5 rounded-lg text-[#525E50] hover:text-[#1B241B] hover:bg-[#EEF2EB] transition disabled:opacity-50 cursor-pointer"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {successMessage ? (
-          /* Full Success Confirmation */
           <div className="py-10 text-center space-y-4 animate-in fade-in">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto shadow-xl shadow-emerald-950/50">
-              <CheckCircle2 className="w-9 h-9 text-emerald-400" />
+            <div className="w-14 h-14 rounded-2xl bg-[#EEF2EB] border border-[#D5DEC9] text-[#374B35] flex items-center justify-center mx-auto shadow-sm">
+              <CheckCircle2 className="w-8 h-8" />
             </div>
 
             <div className="space-y-1.5 max-w-md mx-auto">
-              <span className="text-xs uppercase tracking-wider font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-mono">
-                HTTP 201 Created
+              <span className="text-xs font-medium text-[#374B35] bg-[#EEF2EB] border border-[#D5DEC9] px-2.5 py-0.5 rounded-full">
+                Challenge Published
               </span>
-              <h3 className="text-2xl font-extrabold text-white pt-1">
-                Micro-Task Published Successfully!
+              <h3 className="text-xl font-bold text-[#1B241B] tracking-tight pt-2">
+                Challenge Published to Backlog
               </h3>
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                Your sprint is now active in the Micro-Tasks Opportunity Feed and ready for student deliverables.
+              <p className="text-xs text-[#525E50] leading-relaxed font-normal">
+                Your project challenge is now active in the backlog feed and ready for engineer deliverables.
               </p>
-            </div>
-
-            <div className="pt-2">
-              <span className="text-xs text-zinc-400 flex items-center justify-center gap-1.5 font-mono">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Closing modal automatically...
-              </span>
             </div>
           </div>
         ) : (
           <>
-            {/* Modal Header */}
             <div className="mb-6">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 mb-2">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Company Task Creator</span>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EEF2EB] text-[#374B35] border border-[#D5DEC9] mb-2">
+                <Building className="w-3.5 h-3.5 text-[#3E5239]" />
+                <span>Startup Backlog</span>
               </div>
-              <h2 id="modal-title" className="text-2xl font-extrabold text-white tracking-tight">
-                Post a Micro-Task
+              <h2 className="text-2xl font-bold text-[#1B241B] tracking-tight">
+                Post a Project Challenge
               </h2>
-              <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-                Publish a scoped 1 to 14 day sprint. Students submit authentic code or Figma deliverables to earn verified credentials.
+              <p className="text-xs text-[#525E50] mt-1 font-normal">
+                Publish a scoped 1 to 14 day challenge. Developers submit authentic pull requests to earn credentials.
               </p>
             </div>
 
-            {/* Error Alert */}
             {error && (
-              <div className="mb-5 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+              <div className="mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-medium flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* 1. Task Title */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Task Title */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 font-mono">
-                    Task Title *
-                  </label>
-                  <span
-                    className={`text-[11px] font-mono ${
-                      title.length > 120 ? 'text-rose-400' : 'text-zinc-500'
-                    }`}
-                  >
-                    {title.length}/120
-                  </span>
-                </div>
+                <label className="block text-xs font-medium text-[#1B241B] mb-1.5">
+                  Challenge Title *
+                </label>
                 <input
                   type="text"
                   required
                   maxLength={120}
-                  placeholder="e.g. Build Dark Mode Mobile Drawer in Tailwind"
+                  placeholder="e.g. Build Edge Authentication Flow with NextAuth & MongoDB"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition font-normal"
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-[#E4E8DE] bg-white text-[#1B241B] placeholder:text-[#889684] focus:outline-none focus:ring-2 focus:ring-[#3E5239] focus:border-transparent transition"
                 />
               </div>
 
-              {/* 2. Duration Segmented Picker Buttons */}
+              {/* Duration Segmented Picker */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-2 font-mono flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Sprint Duration *</span>
+                <label className="block text-xs font-medium text-[#1B241B] mb-1.5 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-[#889684]" />
+                  <span>Challenge Duration *</span>
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {DURATION_OPTIONS.map((opt) => {
@@ -284,11 +268,14 @@ export default function PostTaskModal({
                       <button
                         key={opt}
                         type="button"
-                        onClick={() => setDuration(opt)}
-                        className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all text-center cursor-pointer font-mono ${
+                        onClick={() => {
+                          playClickSound();
+                          setDuration(opt);
+                        }}
+                        className={`py-1.5 px-3 text-xs font-medium rounded-lg border transition-all text-center cursor-pointer ${
                           active
-                            ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
-                            : 'bg-black/40 text-zinc-400 border-white/10 hover:text-white hover:bg-white/[0.04]'
+                            ? 'bg-[#344434] text-[#F4F6F1] border-[#344434] shadow-sm'
+                            : 'bg-white text-[#525E50] border-[#E4E8DE] hover:bg-[#EEF2EB]'
                         }`}
                       >
                         {opt}
@@ -298,26 +285,24 @@ export default function PostTaskModal({
                 </div>
               </div>
 
-              {/* 3. Required Skills & Suggestions */}
+              {/* Skills */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-2 font-mono flex items-center gap-1.5">
-                  <Tag className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Required Skills *</span>
+                <label className="block text-xs font-medium text-[#1B241B] mb-1.5 flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5 text-[#889684]" />
+                  <span>Required Skills &amp; Stack *</span>
                 </label>
 
-                {/* Selected Skills Chips */}
-                <div className="flex flex-wrap items-center gap-1.5 mb-2.5 min-h-[36px] p-2 rounded-xl bg-black/40 border border-white/10">
+                <div className="flex flex-wrap items-center gap-1.5 mb-2 min-h-[40px] p-2 rounded-lg bg-[#F2F4EE]/50 border border-[#E4E8DE]">
                   {selectedSkills.map((skill) => (
                     <span
                       key={skill}
-                      className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                      className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-[#EEF2EB] text-[#374B35] border border-[#D5DEC9]"
                     >
                       <span>{skill}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveSkill(skill)}
-                        className="hover:text-rose-400 text-zinc-400 transition ml-0.5"
-                        aria-label={`Remove skill ${skill}`}
+                        className="hover:text-[#1B241B] text-[#525E50] transition ml-0.5 cursor-pointer"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -330,13 +315,12 @@ export default function PostTaskModal({
                     value={skillInput}
                     onChange={(e) => setSkillInput(e.target.value)}
                     onKeyDown={handleKeyDownSkill}
-                    className="flex-1 min-w-[140px] bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none px-1.5 py-1"
+                    className="flex-1 min-w-[140px] bg-transparent text-xs text-[#1B241B] placeholder:text-[#889684] focus:outline-none px-1.5 py-1"
                   />
                 </div>
 
-                {/* Quick Suggestions Chips */}
-                <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-400">
-                  <span className="font-mono text-zinc-500">Suggestions:</span>
+                <div className="flex flex-wrap items-center gap-1.5 text-xs text-[#525E50]">
+                  <span className="font-medium text-[11px] text-[#889684]">Suggestions:</span>
                   {QUICK_SKILL_SUGGESTIONS.map((skill) => {
                     const isSelected = selectedSkills.some(
                       (s) => s.toLowerCase() === skill.toLowerCase()
@@ -346,101 +330,80 @@ export default function PostTaskModal({
                         key={skill}
                         type="button"
                         onClick={() => {
+                          playClickSound();
                           if (isSelected) {
                             handleRemoveSkill(skill);
                           } else {
                             handleAddSkill(skill);
                           }
                         }}
-                        className={`px-2 py-0.5 rounded-md border text-[11px] transition cursor-pointer ${
+                        className={`px-2.5 py-0.5 rounded-full border text-xs font-medium transition cursor-pointer ${
                           isSelected
-                            ? 'bg-indigo-600/40 border-indigo-500 text-indigo-200'
-                            : 'bg-white/[0.04] border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200'
+                            ? 'bg-[#344434] text-[#F4F6F1] border-[#344434]'
+                            : 'bg-white text-[#525E50] border-[#E4E8DE] hover:bg-[#EEF2EB]'
                         }`}
                       >
-                        + {skill}
+                        {skill}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* 4. Description & Deliverables */}
+              {/* Description */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 font-mono flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Description &amp; Deliverables *</span>
+                <label className="block text-xs font-medium text-[#1B241B] mb-1.5 flex items-center gap-1">
+                  <FileText className="w-3.5 h-3.5 text-[#889684]" />
+                  <span>Challenge Description &amp; Context *</span>
                 </label>
                 <textarea
-                  rows={3}
+                  rows={4}
                   required
-                  placeholder="Explain the background, key technical requirements, and the expected deliverable (e.g. GitHub Pull Request or Figma Prototype link)..."
+                  placeholder="Detail the problem statement, repository setup instructions, and expected deliverable..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full p-3.5 text-xs sm:text-sm rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition resize-none leading-relaxed font-normal"
+                  className="w-full p-3 text-xs rounded-lg border border-[#E4E8DE] bg-white text-[#1B241B] placeholder:text-[#889684] focus:outline-none focus:ring-2 focus:ring-[#3E5239] focus:border-transparent transition resize-none"
                 />
               </div>
 
-              {/* 5. Acceptance Criteria */}
+              {/* Acceptance Criteria */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 font-mono flex items-center gap-1.5">
-                    <ListChecks className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Acceptance Criteria (One per line)</span>
-                  </label>
-                  <span className="text-[11px] text-zinc-500 font-mono">Split by newline</span>
-                </div>
+                <label className="block text-xs font-medium text-[#1B241B] mb-1.5 flex items-center gap-1">
+                  <ListChecks className="w-3.5 h-3.5 text-[#889684]" />
+                  <span>Acceptance Criteria (One per line)</span>
+                </label>
                 <textarea
                   rows={3}
-                  placeholder="• Responsive mobile-first design&#10;• Zero TypeScript errors&#10;• Includes unit tests or live preview"
                   value={acceptanceCriteria}
                   onChange={(e) => setAcceptanceCriteria(e.target.value)}
-                  className="w-full p-3.5 text-xs sm:text-sm font-mono rounded-xl bg-black/40 border border-white/10 text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition resize-none leading-relaxed"
+                  className="w-full p-3 text-xs rounded-lg border border-[#E4E8DE] bg-white text-[#1B241B] placeholder:text-[#889684] focus:outline-none focus:ring-2 focus:ring-[#3E5239] focus:border-transparent transition resize-none font-mono text-[11px]"
                 />
               </div>
 
-              {/* 6. Stipend or Perks */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 font-mono flex items-center gap-1.5">
-                  <Coins className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Stipend &amp; Reward</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. ₹2,000 + Verified Skill Badge"
-                  value={stipendOrPerks}
-                  onChange={(e) => setStipendOrPerks(e.target.value)}
-                  className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition font-normal"
-                />
-                <p className="text-[11px] text-zinc-500 mt-1">
-                  Students also receive an authenticated verified skill credential minted directly to their portfolio.
-                </p>
-              </div>
-
-              {/* Form Actions */}
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/[0.08]">
+              {/* Modal Actions */}
+              <div className="pt-2 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={onClose}
                   disabled={loading}
-                  className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08] text-xs sm:text-sm font-semibold transition disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 rounded-lg bg-white border border-[#E4E8DE] hover:bg-[#EEF2EB] text-[#525E50] text-xs font-medium transition cursor-pointer shadow-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2.5 rounded-lg bg-[#344434] hover:bg-[#283528] disabled:bg-[#D5DEC9] disabled:opacity-50 text-[#F4F6F1] font-medium text-xs shadow-sm active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Publishing Task...</span>
+                      <Loader2 className="w-4 h-4 animate-spin text-[#F4F6F1]" />
+                      <span>Publishing...</span>
                     </>
                   ) : (
                     <>
                       <Plus className="w-4 h-4" />
-                      <span>Publish Micro-Task</span>
+                      <span>Publish Challenge</span>
                     </>
                   )}
                 </button>

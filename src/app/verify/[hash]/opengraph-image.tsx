@@ -20,27 +20,14 @@ export default async function Image({ params }: { params: { hash: string } }) {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          backgroundColor: '#09090b',
-          color: '#ffffff',
+          backgroundColor: '#ffffff',
+          color: '#0f172a',
           padding: '50px 60px',
           fontFamily: 'sans-serif',
-          border: '10px solid #18181b',
+          border: '12px solid #e2e8f0',
           position: 'relative',
         }}
       >
-        {/* Glow ambient background element */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-100px',
-            right: '-100px',
-            width: '500px',
-            height: '500px',
-            borderRadius: '500px',
-            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(99, 102, 241, 0.15) 50%, transparent 70%)',
-          }}
-        />
-
         {/* TOP BRAND HEADER */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -49,11 +36,11 @@ export default async function Image({ params }: { params: { hash: string } }) {
                 width: '44px',
                 height: '44px',
                 borderRadius: '12px',
-                backgroundColor: '#10b981',
+                backgroundColor: '#2563eb',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#09090b',
+                color: '#ffffff',
                 fontWeight: 900,
                 fontSize: '24px',
               }}
@@ -61,11 +48,11 @@ export default async function Image({ params }: { params: { hash: string } }) {
               ✓
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.5px', color: '#ffffff' }}>
+              <span style={{ fontSize: '26px', fontWeight: 900, letterSpacing: '-0.5px', color: '#0f172a' }}>
                 SkillTish
               </span>
-              <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 700, letterSpacing: '1px' }}>
-                CRYPTOGRAPHIC AUDIT CERTIFICATE
+              <span style={{ fontSize: '13px', color: '#2563eb', fontWeight: 800, letterSpacing: '1px' }}>
+                ENTERPRISE CRYPTOGRAPHIC CERTIFICATE
               </span>
             </div>
           </div>
@@ -74,17 +61,17 @@ export default async function Image({ params }: { params: { hash: string } }) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              backgroundColor: 'rgba(16, 185, 129, 0.12)',
-              border: '1.5px solid rgba(16, 185, 129, 0.35)',
+              backgroundColor: '#eff6ff',
+              border: '1.5px solid #bfdbfe',
               borderRadius: '999px',
               padding: '8px 20px',
-              color: '#34d399',
+              color: '#1d4ed8',
               fontSize: '14px',
               fontWeight: 800,
               letterSpacing: '1px',
             }}
           >
-            ● VERIFIED PROOF-OF-WORK
+            ● VERIFIED ON-CHAIN PROOF
           </div>
         </div>
 
@@ -93,63 +80,65 @@ export default async function Image({ params }: { params: { hash: string } }) {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            border: '2px solid rgba(255, 255, 255, 0.1)',
+            backgroundColor: '#f8fafc',
+            border: '2px solid #cbd5e1',
             borderRadius: '24px',
             padding: '36px 44px',
             gap: '16px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '14px', color: '#a1a1aa', fontWeight: 600, letterSpacing: '1.5px' }}>
+            <span style={{ fontSize: '14px', color: '#64748b', fontWeight: 700, letterSpacing: '1.5px' }}>
               CERTIFICATE ID:
             </span>
             <span
               style={{
                 fontSize: '15px',
-                color: '#e4e4e7',
+                color: '#0f172a',
                 fontFamily: 'monospace',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e2e8f0',
                 padding: '4px 12px',
                 borderRadius: '8px',
+                fontWeight: 700,
               }}
             >
               #{hash}
             </span>
           </div>
 
-          <div style={{ fontSize: '38px', fontWeight: 900, letterSpacing: '-1px', color: '#ffffff' }}>
+          <div style={{ fontSize: '38px', fontWeight: 900, letterSpacing: '-1px', color: '#0f172a' }}>
             Next.js &amp; NextAuth Production Specialist
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '32px', marginTop: '4px' }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
                 Recipient Engineer
               </span>
-              <span style={{ fontSize: '18px', fontWeight: 700, color: '#f4f4f5' }}>
+              <span style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
                 Alex Chen
               </span>
             </div>
 
-            <div style={{ width: '2px', height: '36px', backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+            <div style={{ width: '2px', height: '36px', backgroundColor: '#cbd5e1' }} />
 
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
                 Verified By Startup
               </span>
-              <span style={{ fontSize: '18px', fontWeight: 700, color: '#818cf8' }}>
+              <span style={{ fontSize: '18px', fontWeight: 800, color: '#1d4ed8' }}>
                 DevStudio
               </span>
             </div>
 
-            <div style={{ width: '2px', height: '36px', backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+            <div style={{ width: '2px', height: '36px', backgroundColor: '#cbd5e1' }} />
 
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
                 Integrity Hash
               </span>
-              <span style={{ fontSize: '15px', fontFamily: 'monospace', color: '#34d399' }}>
+              <span style={{ fontSize: '15px', fontFamily: 'monospace', color: '#059669', fontWeight: 700 }}>
                 SHA-256 TAMPER-PROOF
               </span>
             </div>
@@ -162,20 +151,20 @@ export default async function Image({ params }: { params: { hash: string } }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            borderTop: '1px solid #e2e8f0',
             paddingTop: '20px',
             fontSize: '13px',
-            color: '#71717a',
+            color: '#64748b',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>SkillTish Proof Engine</span>
+            <span style={{ fontWeight: 600 }}>SkillTish Enterprise Proof Engine</span>
             <span>•</span>
-            <span style={{ color: '#a1a1aa' }}>Engineered by Tanishq Goyal</span>
+            <span style={{ color: '#0f172a', fontWeight: 600 }}>Engineered by Tanishq Goyal</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981' }}>
-            <span>On-Chain Code Audit Verified</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: 700 }}>
+            <span>Verified Source Code Deliverable</span>
           </div>
         </div>
       </div>

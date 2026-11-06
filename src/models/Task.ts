@@ -13,6 +13,9 @@ export interface ITask extends Document {
   posterId: string;
   posterName: string;
   companyName: string;
+  creatorId?: string;
+  creatorEmail?: string;
+  difficulty?: string;
   status: TaskStatus;
   reward?: string;
   createdAt: Date;
@@ -61,6 +64,18 @@ const TaskSchema = new Schema<ITask>(
     companyName: {
       type: String,
       required: [true, 'Company name is required'],
+    },
+    creatorId: {
+      type: String,
+      trim: true,
+    },
+    creatorEmail: {
+      type: String,
+      trim: true,
+    },
+    difficulty: {
+      type: String,
+      trim: true,
     },
     status: {
       type: String,

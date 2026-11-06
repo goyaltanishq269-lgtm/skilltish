@@ -69,6 +69,146 @@ export async function getUsers(): Promise<any[]> {
   return mem.users;
 }
 
+export async function createUser(userData: {
+  name: string;
+  email: string;
+  password?: string;
+  role: 'student' | 'company' | 'poster';
+  college?: string;
+  company?: string;
+  bio?: string;
+  skills?: string[];
+  avatar?: string;
+  isEmailVerified?: boolean;
+  verificationToken?: string | null;
+  verificationTokenExpires?: Date | null;
+}): Promise<any> {
+  const normalizedEmail = userData.email.trim().toLowerCase();
+
+  // Check duplicate first
+  const existing = await getUserByEmail(normalizedEmail);
+  if (existing) {
+    throw new Error('A user with this email already exists.');
+  }
+
+  const { isConnected } = await connectToDatabase();
+  let createdUser: any = null;
+
+  const isEmailVerified = userData.isEmailVerified ?? false;
+
+  if (isConnected) {
+    await ensureSeeded();
+    const newUser = new User({
+      ...userData,
+      email: normalizedEmail,
+      isEmailVerified,
+      verificationToken: userData.verificationToken || null,
+      verificationTokenExpires: userData.verificationTokenExpires || null,
+      createdAt: new Date(),
+    });
+    const saved = await newUser.save();
+    createdUser = saved.toObject();
+  }
+
+  // Always sync to runtime memory so NextAuth and immediate lookups succeed
+  const memUser = {
+    _id: createdUser?._id ? String(createdUser._id) : `user_${Date.now()}`,
+    name: userData.name.trim(),
+    email: normalizedEmail,
+    password: userData.password || '',
+    role: userData.role || 'student',
+    college: userData.college || (userData.role === 'student' ? 'Independent Engineer' : ''),
+    company: userData.company || (userData.role === 'company' ? 'Stealth Startup' : ''),
+    bio: userData.bio || '',
+    skills: userData.skills || [],
+    avatar: userData.avatar || '',
+    isEmailVerified,
+    verificationToken: userData.verificationToken || null,
+    verificationTokenExpires: userData.verificationTokenExpires || null,
+    createdAt: new Date(),
+  };
+
+  if (!mem.users.some((u) => u.email.toLowerCase() === normalizedEmail)) {
+    mem.users.push(memUser as any);
+  }
+
+  return createdUser || memUser;
+}
+
+export async function verifyUserByToken(token: string): Promise<any | null> {
+  const { isConnected } = await connectToDatabase();
+  const now = new Date();
+
+  if (isConnected) {
+    await ensureSeeded();
+    const user = await User.findOne({
+      verificationToken: token,
+      verificationTokenExpires: { $gt: now },
+    });
+
+    if (user) {
+      user.isEmailVerified = true;
+      user.verificationToken = null;
+      user.verificationTokenExpires = null;
+      await user.save();
+
+      // Sync memory
+      const memUser = mem.users.find((u) => u.email.toLowerCase() === user.email.toLowerCase());
+      if (memUser) {
+        memUser.isEmailVerified = true;
+        memUser.verificationToken = null;
+        memUser.verificationTokenExpires = null;
+      }
+
+      return user.toObject();
+    }
+  }
+
+  // Fallback to memory
+  const memUser = mem.users.find(
+    (u) =>
+      u.verificationToken === token &&
+      u.verificationTokenExpires &&
+      new Date(u.verificationTokenExpires) > now
+  );
+
+  if (memUser) {
+    memUser.isEmailVerified = true;
+    memUser.verificationToken = null;
+    memUser.verificationTokenExpires = null;
+    return memUser;
+  }
+
+  return null;
+}
+
+export async function setVerificationToken(
+  email: string,
+  token: string,
+  expires: Date
+): Promise<any | null> {
+  const { isConnected } = await connectToDatabase();
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (isConnected) {
+    await ensureSeeded();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (user) {
+      user.verificationToken = token;
+      user.verificationTokenExpires = expires;
+      await user.save();
+    }
+  }
+
+  const memUser = mem.users.find((u) => u.email.toLowerCase() === normalizedEmail);
+  if (memUser) {
+    memUser.verificationToken = token;
+    memUser.verificationTokenExpires = expires;
+  }
+
+  return getUserByEmail(normalizedEmail);
+}
+
 export async function getUserByEmail(email: string): Promise<any | null> {
   const { isConnected } = await connectToDatabase();
   if (isConnected) {
@@ -80,15 +220,43 @@ export async function getUserByEmail(email: string): Promise<any | null> {
 }
 
 export async function getUserById(id: string): Promise<any | null> {
+  const normId = String(id || '').trim();
+  if (
+    normId === 'founder' ||
+    normId === 'creator' ||
+    normId === 'tanishq' ||
+    normId === 'tanishq-goyal'
+  ) {
+    return {
+      _id: 'founder',
+      id: 'founder',
+      name: 'Tanishq Goyal',
+      email: 'goyaltanishq269@gmail.com',
+      role: 'founder',
+      github: 'https://github.com/goyaltanishq269-lgtm',
+      linkedin: 'https://www.linkedin.com/in/tanishq-goyal-a64279388/',
+      bio: 'Architected SkillTish as a verifiable proof-of-work protocol to replace credential inflation with tamper-proof engineering provenance.',
+      college: 'B.Tech Computer Science & Engineering',
+      skills: [
+        'Next.js 14 App Router',
+        'TypeScript',
+        'Tailwind CSS',
+        'NextAuth JWT',
+        'MongoDB Atlas',
+        'SHA-256 Proof Engine',
+      ],
+    };
+  }
+
   const { isConnected } = await connectToDatabase();
   if (isConnected) {
     await ensureSeeded();
     let user = null;
-    if (mongoose.Types.ObjectId.isValid(id)) {
-      user = await User.findById(id).lean();
+    if (mongoose.Types.ObjectId.isValid(normId)) {
+      user = await User.findById(normId).lean();
     }
     if (!user) {
-      if (id === 'student-1' || id === '660000000000000000000001') {
+      if (normId === 'student-1' || normId === '660000000000000000000001') {
         user = await User.findOne({
           $or: [
             { _id: 'student-1' },
@@ -96,7 +264,7 @@ export async function getUserById(id: string): Promise<any | null> {
             { email: 'student@college.edu' },
           ],
         }).lean();
-      } else if (id === 'company-1' || id === '660000000000000000000002') {
+      } else if (normId === 'company-1' || normId === '660000000000000000000002') {
         user = await User.findOne({
           $or: [
             { _id: 'company-1' },
@@ -106,24 +274,84 @@ export async function getUserById(id: string): Promise<any | null> {
           ],
         }).lean();
       } else {
-        user = await User.findOne({ $or: [{ _id: id }, { email: id }] }).lean();
+        user = await User.findOne({
+          $or: [{ _id: normId }, { email: normId.toLowerCase() }],
+        }).lean();
       }
     }
     if (user) return user;
   }
 
-  let memUser = mem.users.find((u) => u._id === id);
-  if (!memUser && (id === 'student-1' || id === '660000000000000000000001')) {
-    memUser = mem.users.find((u) => u.email === 'student@college.edu');
+  const memStore = global.memoryStore || mem;
+  let memUser = memStore.users.find(
+    (u) =>
+      String(u._id) === normId ||
+      String((u as any).id || '') === normId ||
+      u.email.toLowerCase() === normId.toLowerCase()
+  );
+  if (!memUser && (normId === 'student-1' || normId === '660000000000000000000001')) {
+    memUser = memStore.users.find((u) => u.email === 'student@college.edu');
   }
-  if (!memUser && (id === 'company-1' || id === '660000000000000000000002')) {
-    memUser = mem.users.find((u) => u.email === 'founder@startup.com' || u.email === 'priya@devstudio.io');
+  if (!memUser && (normId === 'company-1' || normId === '660000000000000000000002')) {
+    memUser = memStore.users.find(
+      (u) => u.email === 'founder@startup.com' || u.email === 'priya@devstudio.io'
+    );
   }
   return memUser || null;
 }
 
+export async function deleteUserAccountFromStore(userId: string, email: string) {
+  if (global.memoryStore) {
+    const memStore = global.memoryStore;
+    const lowerEmail = email ? email.toLowerCase().trim() : '';
+    const normId = userId ? String(userId).trim() : '';
+
+    memStore.users = memStore.users.filter((u) => {
+      const uId = String(u._id || (u as any).id || '').trim();
+      const uEmail = (u.email || '').toLowerCase().trim();
+      if (normId && uId === normId) return false;
+      if (lowerEmail && uEmail === lowerEmail) return false;
+      return true;
+    });
+
+    memStore.submissions = memStore.submissions.filter((s) => {
+      const sId = String(s.studentId || '').trim();
+      const sEmail = sId.toLowerCase();
+      if (normId && sId === normId) return false;
+      if (lowerEmail && sEmail === lowerEmail) return false;
+      return true;
+    });
+
+    memStore.tasks = memStore.tasks.filter((t) => {
+      const poster = String(t.posterId || (t as any).postedBy || '').trim();
+      const creator = String((t as any).creatorId || '').trim();
+      const creatorEmail = String((t as any).creatorEmail || '').toLowerCase().trim();
+      if (normId && (poster === normId || creator === normId)) return false;
+      if (lowerEmail && (poster.toLowerCase() === lowerEmail || creatorEmail === lowerEmail))
+        return false;
+      return true;
+    });
+
+    memStore.badges = memStore.badges.filter((b) => {
+      const student = String(b.studentId || '').trim();
+      const studentEmail = student.toLowerCase();
+      const issuer = String(b.issuerId || '').trim();
+      if (normId && (student === normId || issuer === normId)) return false;
+      if (lowerEmail && studentEmail === lowerEmail) return false;
+      return true;
+    });
+  }
+}
+
 // Task methods
-export async function getTasks(filters?: { duration?: string; skill?: string; search?: string }): Promise<any[]> {
+export async function getTasks(filters?: {
+  duration?: string;
+  skill?: string;
+  search?: string;
+  creatorId?: string;
+  creatorEmail?: string;
+  status?: string;
+}): Promise<any[]> {
   const { isConnected } = await connectToDatabase();
   if (isConnected) {
     await ensureSeeded();
@@ -133,6 +361,21 @@ export async function getTasks(filters?: { duration?: string; skill?: string; se
     }
     if (filters?.skill && filters.skill !== 'all') {
       query.skillsRequired = { $in: [new RegExp(filters.skill, 'i')] };
+    }
+    if (filters?.creatorId || filters?.creatorEmail) {
+      const orList: any[] = [];
+      if (filters.creatorId) {
+        orList.push({ posterId: filters.creatorId });
+        orList.push({ creatorId: filters.creatorId });
+        if (['founder', 'creator', 'tanishq', 'tanishq-goyal'].includes(filters.creatorId)) {
+          orList.push({ creatorEmail: 'goyaltanishq269@gmail.com' });
+        }
+      }
+      if (filters.creatorEmail) {
+        orList.push({ creatorEmail: filters.creatorEmail.toLowerCase() });
+        orList.push({ 'poster.email': filters.creatorEmail.toLowerCase() });
+      }
+      query.$or = orList;
     }
     if (filters?.search) {
       query.$or = [
@@ -165,6 +408,24 @@ export async function getTasks(filters?: { duration?: string; skill?: string; se
     list = list.filter((t) =>
       t.skillsRequired.some((s) => s.toLowerCase().includes(filters.skill!.toLowerCase()))
     );
+  }
+  if (filters?.creatorId || filters?.creatorEmail) {
+    list = list.filter((t: any) => {
+      const poster = mem.users.find((u) => u._id === t.posterId);
+      const cId = String(t.creatorId || t.posterId || '');
+      const cEmail = String(t.creatorEmail || poster?.email || '').toLowerCase();
+
+      const matchesId =
+        filters.creatorId &&
+        (cId === String(filters.creatorId) ||
+          (['founder', 'creator', 'tanishq', 'tanishq-goyal'].includes(filters.creatorId) &&
+            (cId === 'founder' || cEmail === 'goyaltanishq269@gmail.com')));
+
+      const matchesEmail =
+        filters.creatorEmail && cEmail === filters.creatorEmail.toLowerCase();
+
+      return Boolean(matchesId || matchesEmail);
+    });
   }
   if (filters?.search) {
     const s = filters.search.toLowerCase();
@@ -244,6 +505,9 @@ export async function createTask(data: {
   posterId: string;
   posterName?: string;
   companyName?: string;
+  creatorId?: string;
+  creatorEmail?: string;
+  difficulty?: string;
   acceptanceCriteria?: string[];
   stipendOrPerks?: string;
   reward?: string;
@@ -258,6 +522,9 @@ export async function createTask(data: {
     posterId: data.posterId,
     posterName: data.posterName || 'Priya Sharma',
     companyName: data.companyName || 'DevStudio',
+    creatorId: data.creatorId || data.posterId,
+    creatorEmail: data.creatorEmail,
+    difficulty: data.difficulty,
     acceptanceCriteria: data.acceptanceCriteria || [],
     stipendOrPerks: data.stipendOrPerks || data.reward || 'Verified Skill Badge',
     reward: data.stipendOrPerks || data.reward || 'Verified Skill Badge',

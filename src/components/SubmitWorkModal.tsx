@@ -10,10 +10,10 @@ import {
   CheckCircle,
   AlertCircle,
   Link as LinkIcon,
-  Sparkles,
-  GitPullRequest,
+  ShieldCheck,
 } from 'lucide-react';
 import { useSession, signIn } from 'next-auth/react';
+import { playClickSound } from '@/lib/sounds';
 
 interface SubmitWorkModalProps {
   isOpen: boolean;
@@ -36,6 +36,8 @@ export default function SubmitWorkModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendFeedback, setResendFeedback] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -43,12 +45,41 @@ export default function SubmitWorkModal({
   const isGithub = urlLower.includes('github.com');
   const isFigma = urlLower.includes('figma.com');
 
+  const handleResendVerification = async () => {
+    playClickSound();
+    setResending(true);
+    setResendFeedback(null);
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: session?.user?.email }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResendFeedback('[SENT] Verification link sent to inbox.');
+      } else {
+        setError(data.error || 'Failed to resend link.');
+      }
+    } catch {
+      setError('Failed to resend link.');
+    } finally {
+      setResending(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    playClickSound();
     setError(null);
 
+    if (session?.user && session.user.isEmailVerified === false) {
+      setError('Email verification required. Please verify your email address before submitting deliverables.');
+      return;
+    }
+
     if (!proofUrl.trim()) {
-      setError('Please provide your GitHub repository, pull request, or Figma link.');
+      setError('Please provide your GitHub pull request or Figma design link.');
       return;
     }
 
@@ -92,111 +123,137 @@ export default function SubmitWorkModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="glass-card rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-white/10 shadow-2xl relative bg-[#0d0d12]/95 backdrop-blur-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-[#1B241B]/30 animate-in fade-in duration-150 font-sans">
+      <div className="bg-[#FBFBF9] rounded-2xl max-w-lg w-full p-6 sm:p-7 border border-[#E4E8DE] shadow-[0_1px_3px_rgba(40,50,40,0.04),0_6px_16px_rgba(40,50,40,0.02)] relative text-[#1B241B]">
         <button
           onClick={onClose}
           disabled={loading}
-          className="absolute top-5 right-5 p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] transition"
+          className="absolute top-5 right-5 p-1.5 rounded-lg text-[#525E50] hover:text-[#1B241B] hover:bg-[#F2F4EE] transition cursor-pointer"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         <div className="mb-6">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-2.5">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Proof-of-Work Verification</span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EEF2EB] text-[#374B35] border border-[#D5DEC9] mb-2">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#3E5239]" />
+            <span>Proof-of-Work Submission</span>
           </div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Apply &amp; Submit Work</h2>
-          <p className="text-xs text-zinc-400 mt-1 line-clamp-1">
-            Task: <span className="text-zinc-200 font-medium">{taskTitle}</span>
+          <h2 className="text-xl font-bold text-[#1B241B] tracking-tight">Submit Deliverable</h2>
+          <p className="text-xs text-[#525E50] mt-1 line-clamp-1">
+            Project: <strong className="text-[#1B241B] font-semibold">{taskTitle}</strong>
           </p>
         </div>
 
         {!session ? (
           <div className="text-center py-6">
-            <AlertCircle className="w-10 h-10 text-amber-400 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-white mb-1">
-              Student Sign-In Required
+            <AlertCircle className="w-10 h-10 text-[#525E50]/60 mx-auto mb-3" />
+            <h3 className="text-base font-semibold text-[#1B241B] mb-1">
+              Authentication Required
             </h3>
-            <p className="text-xs sm:text-sm text-zinc-400 mb-6 max-w-sm mx-auto">
-              Sign in with the student account (Alex Chen) to submit proof of work and claim badges.
+            <p className="text-xs text-[#525E50] mb-6 max-w-sm mx-auto font-normal">
+              Sign in to submit pull requests and earn verified skill credentials.
             </p>
             <button
-              onClick={() =>
+              onClick={() => {
+                playClickSound();
                 signIn('credentials', {
                   email: 'student@college.edu',
                   callbackUrl: window.location.href,
-                })
-              }
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/20 transition cursor-pointer"
+                });
+              }}
+              className="w-full py-2.5 px-4 rounded-lg bg-[#344434] hover:bg-[#283528] text-[#F4F6F1] font-medium text-xs shadow-sm transition cursor-pointer"
             >
-              Sign In as Alex Chen (Student)
+              Sign In as Alex Chen (Student Demo)
             </button>
           </div>
         ) : success ? (
           <div className="text-center py-8">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto mb-4 animate-bounce">
-              <CheckCircle className="w-8 h-8" />
+            <div className="w-14 h-14 rounded-2xl bg-[#EEF2EB] border border-[#D5DEC9] text-[#374B35] flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <CheckCircle className="w-8 h-8 text-[#3E5239]" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-1">
-              Proof Submitted Successfully!
+            <h3 className="text-lg font-bold text-[#1B241B] mb-1">
+              Submission Recorded
             </h3>
-            <p className="text-xs sm:text-sm text-zinc-400">
-              The startup poster will review your deliverable and mint your verified skill badge.
+            <p className="text-xs text-[#525E50] font-normal">
+              Startup review leads will inspect your pull request and issue your verified credential.
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-medium flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{error}</span>
               </div>
             )}
 
-            {/* Proof URL Input with Auto-Detection Icon */}
+            {/* Verification Gate Alert */}
+            {session?.user && session.user.isEmailVerified === false && (
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs space-y-2">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold block">Email Verification Required:</span>
+                    <span>
+                      Please verify email address (
+                      <strong className="underline decoration-amber-300">{session.user.email}</strong>
+                      ) before submitting deliverables.
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={resending}
+                    className="px-3 py-1 rounded-lg bg-white hover:bg-amber-100/60 border border-amber-300/80 font-medium text-[11px] text-amber-900 transition cursor-pointer shadow-sm"
+                  >
+                    {resending ? 'Sending...' : 'Resend Verification Link'}
+                  </button>
+                  {resendFeedback && (
+                    <span className="text-[11px] font-medium text-amber-800">{resendFeedback}</span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Proof URL Input */}
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2 font-mono">
-                Work Proof Link (GitHub or Figma) *
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                Deliverable Proof Link (GitHub Pull Request or Figma) *
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   {isGithub ? (
-                    <Github className="w-4 h-4 text-emerald-400" />
+                    <Github className="w-4 h-4 text-slate-800" />
                   ) : isFigma ? (
-                    <Figma className="w-4 h-4 text-purple-400" />
+                    <Figma className="w-4 h-4 text-purple-600" />
                   ) : (
-                    <LinkIcon className="w-4 h-4 text-zinc-500" />
+                    <LinkIcon className="w-4 h-4 text-slate-400" />
                   )}
                 </div>
                 <input
                   type="url"
                   required
-                  placeholder="https://github.com/alexchen/pr-42 or https://figma.com/file/..."
+                  placeholder="https://github.com/org/repo/pull/42 or Figma URL"
                   value={proofUrl}
                   onChange={(e) => setProofUrl(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-white/10 bg-black/40 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition font-normal"
+                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
                 />
               </div>
-              <p className="text-[11px] text-zinc-500 mt-1.5 flex items-center gap-2">
-                <span>Must be an accessible URL:</span>
-                <span className="font-medium text-zinc-300">GitHub repo / PR</span> or{' '}
-                <span className="font-medium text-zinc-300">Figma prototype</span>
-              </p>
             </div>
 
-            {/* Implementation Notes & Methodology Textarea */}
+            {/* Implementation Notes */}
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2 font-mono">
-                Implementation Notes &amp; Architectural Approach
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                Architecture &amp; Implementation Notes
               </label>
               <textarea
                 rows={4}
-                placeholder="Explain your approach, libraries used, test coverage, and any key architectural decisions..."
+                placeholder="Explain approach, dependencies, edge tests, and architectural decisions..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full p-3.5 text-xs sm:text-sm rounded-xl border border-white/10 bg-black/40 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition resize-none font-normal"
+                className="w-full p-3 text-xs rounded-lg border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition resize-none font-sans"
               />
             </div>
 
@@ -206,24 +263,24 @@ export default function SubmitWorkModal({
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-xs sm:text-sm font-semibold text-zinc-400 hover:text-white hover:bg-white/[0.08] transition cursor-pointer"
+                className="px-4 py-2 rounded-lg bg-white border border-[#D5DEC9] hover:bg-[#F4F6F1] text-[#1B241B] text-xs font-medium transition cursor-pointer shadow-sm"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={loading}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition disabled:opacity-60 cursor-pointer"
+                disabled={loading || session?.user?.isEmailVerified === false}
+                className="px-5 py-2 rounded-lg bg-[#344434] hover:bg-[#283528] disabled:bg-[#DEE3D7] disabled:text-[#525E50] disabled:cursor-not-allowed text-[#F4F6F1] text-xs font-medium shadow-sm active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
                     <span>Submitting...</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>Submit for Verification</span>
+                    <span>Submit For Review</span>
                   </>
                 )}
               </button>

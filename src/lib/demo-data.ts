@@ -2,13 +2,17 @@ export interface MockUser {
   _id: string;
   name: string;
   email: string;
-  role: 'student' | 'poster';
+  password?: string;
+  role: 'student' | 'poster' | 'company';
   college: string;
   company?: string;
   bio: string;
   skills: string[];
   avatar: string;
-  createdAt: string;
+  isEmailVerified?: boolean;
+  verificationToken?: string | null;
+  verificationTokenExpires?: Date | string | null;
+  createdAt: string | Date;
 }
 
 export interface MockTask {
@@ -78,19 +82,41 @@ export const INITIAL_USERS: MockUser[] = [
     bio: 'CS junior focused on front-end engineering, React, TypeScript, and modern design systems. Building production-ready micro-projects to prove verifiable skills.',
     skills: ['React', 'TypeScript', 'Tailwind CSS', 'Next.js', 'Figma', 'Node.js'],
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+    isEmailVerified: true,
     createdAt: '2026-01-10T10:00:00.000Z',
   },
   {
     _id: 'company-1',
     name: 'Priya Sharma',
     email: 'founder@startup.com',
-    role: 'poster',
+    role: 'company',
     college: '',
     company: 'DevStudio',
     bio: 'Founder & Head of Engineering at DevStudio. We create developer productivity tools and love discovering ambitious students via verifiable proof-of-work.',
     skills: ['Next.js', 'System Architecture', 'Product Management', 'MongoDB'],
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80',
+    isEmailVerified: true,
     createdAt: '2026-01-05T09:00:00.000Z',
+  },
+  {
+    _id: 'founder',
+    name: 'Tanishq Goyal',
+    email: 'goyaltanishq269@gmail.com',
+    role: 'founder' as any,
+    college: 'B.Tech in Artificial Intelligence & Data Engineering',
+    company: 'SkillTish Architecture',
+    bio: 'Architected SkillTish as a verifiable proof-of-work protocol to replace credential inflation with tamper-proof engineering provenance.',
+    skills: [
+      'Next.js 14 App Router',
+      'TypeScript',
+      'Tailwind CSS',
+      'NextAuth JWT',
+      'MongoDB Atlas',
+      'SHA-256 Proof Engine',
+    ],
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+    isEmailVerified: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
   },
 ];
 

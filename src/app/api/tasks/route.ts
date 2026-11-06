@@ -12,6 +12,8 @@ export async function GET(request: Request) {
     const duration = searchParams.get('duration');
     const statusParam = searchParams.get('status');
     const search = searchParams.get('search');
+    const creatorId = searchParams.get('creatorId');
+    const creatorEmail = searchParams.get('creatorEmail');
 
     // Build filter query
     const query: any = {};
@@ -31,13 +33,35 @@ export async function GET(request: Request) {
       query.skillsRequired = { $in: [new RegExp(skill, 'i')] };
     }
 
+    if (creatorId || creatorEmail) {
+      const orList: any[] = [];
+      if (creatorId) {
+        orList.push({ posterId: creatorId });
+        orList.push({ creatorId: creatorId });
+        if (
+          creatorId === 'founder' ||
+          creatorId === 'creator' ||
+          creatorId === 'tanishq' ||
+          creatorId === 'tanishq-goyal'
+        ) {
+          orList.push({ creatorEmail: 'goyaltanishq269@gmail.com' });
+        }
+      }
+      if (creatorEmail) {
+        orList.push({ creatorEmail: creatorEmail.toLowerCase() });
+        orList.push({ 'poster.email': creatorEmail.toLowerCase() });
+      }
+      query.$or = orList;
+    }
+
     if (search && search.trim()) {
       const s = search.trim();
-      query.$or = [
+      const searchOr = [
         { title: { $regex: s, $options: 'i' } },
         { description: { $regex: s, $options: 'i' } },
         { companyName: { $regex: s, $options: 'i' } },
       ];
+      query.$and = [{ $or: searchOr }];
     }
 
     // Connect to DB and fetch sorted by createdAt: -1
@@ -54,6 +78,9 @@ export async function GET(request: Request) {
         duration: duration || undefined,
         skill: skill || undefined,
         search: search || undefined,
+        creatorId: creatorId || undefined,
+        creatorEmail: creatorEmail || undefined,
+        status: statusParam || undefined,
       });
       return NextResponse.json(fallbackTasks);
     }
@@ -78,9 +105,15 @@ export async function POST(request: Request) {
     }
 
     const userRole = (session.user as any).role;
-    if (userRole !== 'company') {
+    const userEmail = ((session.user as any).email || '').toLowerCase();
+    const isFounder =
+      userRole === 'founder' ||
+      userEmail === 'goyaltanishq269@gmail.com' ||
+      userEmail === 'founder@skilltish.io';
+
+    if (userRole !== 'company' && !isFounder) {
       return NextResponse.json(
-        { error: 'Forbidden: Only company accounts have permission to post micro-tasks.' },
+        { error: 'Forbidden: Only company accounts and platform architects have permission to post challenges.' },
         { status: 401 }
       );
     }
@@ -153,9 +186,19 @@ export async function POST(request: Request) {
         ? stipendOrPerks.trim()
         : 'Verified Skill Badge';
 
-    const posterId = session.user.id || 'company-1';
-    const posterName = session.user.name || 'Priya Sharma';
-    const companyName = session.user.company || 'DevStudio';
+    const posterId = session.user.id || (isFounder ? 'founder' : 'company-1');
+    const posterName = session.user.name || (isFounder ? 'Tanishq Goyal' : 'Priya Sharma');
+    const companyName = session.user.company || (isFounder ? 'SkillTish Architecture' : 'DevStudio');
+
+    // Difficulty inference if not passed
+    const rawDifficulty = body.difficulty;
+    const computedDifficulty =
+      rawDifficulty ||
+      (chosenDuration === '1 day'
+        ? 'Beginner'
+        : chosenDuration === '1 week' || chosenDuration === '2 weeks'
+        ? 'Advanced'
+        : 'Intermediate');
 
     const taskData = {
       title: title.trim(),
@@ -168,6 +211,9 @@ export async function POST(request: Request) {
       posterId,
       posterName,
       companyName,
+      creatorId: posterId,
+      creatorEmail: session.user.email || (isFounder ? 'goyaltanishq269@gmail.com' : undefined),
+      difficulty: computedDifficulty,
       status: 'open' as const,
       createdAt: new Date(),
     };

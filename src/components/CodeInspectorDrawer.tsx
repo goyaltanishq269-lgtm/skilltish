@@ -10,15 +10,13 @@ import {
   CheckCircle2,
   ExternalLink,
   Award,
-  Sparkles,
   ShieldCheck,
   FileCode,
   GraduationCap,
-  Calendar,
-  AlertCircle,
   Copy,
   Check,
 } from 'lucide-react';
+import { playClickSound } from '@/lib/sounds';
 
 interface CodeInspectorDrawerProps {
   isOpen: boolean;
@@ -48,6 +46,7 @@ export default function CodeInspectorDrawer({
   const isApproved = submission.status === 'approved';
 
   const handleCopyCommit = () => {
+    playClickSound();
     navigator.clipboard.writeText('git checkout a9f81d3e840');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -63,33 +62,33 @@ export default function CodeInspectorDrawer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 transition-opacity"
+            className="fixed inset-0 bg-slate-900/30 backdrop-blur-md z-50 transition-opacity"
           />
 
-          {/* Slide-over Drawer */}
+          {/* Slide-over Drawer: Clean Linear/Stripe engineering design */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-            className="fixed inset-y-0 right-0 w-full max-w-2xl bg-zinc-950/95 border-l border-white/10 backdrop-blur-2xl z-50 shadow-2xl flex flex-col justify-between overflow-hidden"
+            className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white border-l border-slate-200/70 z-50 shadow-2xl flex flex-col justify-between overflow-hidden text-slate-800"
           >
-            {/* TOP BAR / HEADER */}
-            <div className="p-6 border-b border-white/10 flex items-center justify-between bg-zinc-900/40">
+            {/* STICKY TOP BAR / HEADER */}
+            <div className="sticky top-0 z-20 px-6 py-4 border-b border-[#E4E8DE] flex items-center justify-between bg-white/95 backdrop-blur-md">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-indigo-600 flex items-center justify-center text-zinc-950 font-bold shadow-md shadow-emerald-500/20">
-                  <GitPullRequest className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-[#2D3B2D] flex items-center justify-center text-[#D5DEC9] font-bold shadow-sm shadow-[#2D3B2D]/20">
+                  <GitPullRequest className="w-5 h-5 text-[#D5DEC9]" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
+                    <span className="text-xs font-semibold text-[#374B35]">
                       Code Inspector
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold">
-                      PR #42 Verified
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#EEF2EB] text-[#374B35] border border-[#D5DEC9] font-mono">
+                      PR #42 Ready for Review
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-white tracking-tight">
+                  <h3 className="text-base font-semibold text-[#1B241B] tracking-tight">
                     Proof-of-Work Pull Request
                   </h3>
                 </div>
@@ -97,7 +96,7 @@ export default function CodeInspectorDrawer({
 
               <button
                 onClick={onClose}
-                className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                className="p-1.5 rounded-lg text-[#525E50] hover:text-[#1B241B] hover:bg-[#F2F4EE] transition cursor-pointer"
                 title="Close Drawer"
               >
                 <X className="w-5 h-5" />
@@ -107,19 +106,19 @@ export default function CodeInspectorDrawer({
             {/* SCROLLABLE BODY */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* SUBMISSION & STUDENT SUMMARY CARD */}
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-3">
+              <div className="p-4 rounded-xl bg-[#F8F9F5] border border-[#E4E8DE] space-y-3">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h4 className="text-sm font-bold text-white mb-0.5">
+                    <h4 className="text-sm font-bold text-[#1B241B] mb-0.5">
                       {taskTitle}
                     </h4>
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400">
-                      <span className="font-semibold text-zinc-200">
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-[#525E50]">
+                      <span className="font-semibold text-[#1B241B]">
                         {studentName}
                       </span>
                       <span>•</span>
-                      <span className="flex items-center gap-1 text-zinc-400">
-                        <GraduationCap className="w-3.5 h-3.5 text-zinc-500" />
+                      <span className="flex items-center gap-1 text-[#525E50]">
+                        <GraduationCap className="w-3.5 h-3.5 text-[#3E5239]" />
                         {college}
                       </span>
                     </div>
@@ -129,16 +128,19 @@ export default function CodeInspectorDrawer({
                     href={proofUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition shrink-0"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-[#D5DEC9] hover:bg-[#F4F6F1] text-[#1B241B] text-xs font-semibold transition shrink-0 shadow-sm hover:shadow"
                   >
-                    <span>Inspect GitHub</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-1.5 font-mono text-xs bg-[#F2F4EE] text-[#414E3F] px-2 py-0.5 rounded border border-[#DEE3D7]">
+                      <GitPullRequest className="w-3.5 h-3.5 text-[#3E5239]" />
+                      <span>PR #{proofUrl.split('/').pop() || '42'}</span>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-[#525E50]" />
                   </a>
                 </div>
 
                 {submission.notes && (
-                  <div className="text-xs text-zinc-300 bg-black/40 p-3 rounded-xl border border-white/[0.06] font-mono leading-relaxed">
-                    <span className="text-[11px] uppercase tracking-wider text-zinc-500 font-sans block mb-1 font-bold">
+                  <div className="text-xs text-slate-700 bg-white p-3 rounded-lg border border-slate-200/60 leading-relaxed">
+                    <span className="text-[11px] uppercase tracking-wider text-slate-500 block mb-1 font-semibold">
                       Student Implementation Brief:
                     </span>
                     &ldquo;{submission.notes}&rdquo;
@@ -148,141 +150,147 @@ export default function CodeInspectorDrawer({
 
               {/* SIMULATED GIT COMMIT & CI/CD BADGES */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs text-zinc-400">
-                  <span className="font-mono uppercase font-bold tracking-wider text-zinc-400">
+                <div className="flex items-center justify-between text-xs text-slate-600">
+                  <span className="font-semibold text-slate-800">
                     Git Provenance
                   </span>
                   <button
                     onClick={handleCopyCommit}
-                    className="flex items-center gap-1 hover:text-white transition font-mono text-[11px] cursor-pointer"
+                    className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition text-[11px] font-mono cursor-pointer"
                   >
                     {copied ? (
                       <>
-                        <Check className="w-3 h-3 text-emerald-400" />
-                        <span className="text-emerald-400">Copied checkout</span>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-emerald-700 font-medium">Copied checkout</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3 h-3 text-zinc-500" />
+                        <Copy className="w-3.5 h-3.5 text-slate-400" />
                         <span>Copy checkout command</span>
                       </>
                     )}
                   </button>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-black/50 border border-white/[0.08] font-mono text-xs flex flex-wrap items-center justify-between gap-3">
+                <div className="p-3.5 rounded-xl bg-[#F2F4EE]/60 border border-[#E4E8DE] font-mono text-xs flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <GitCommit className="w-4 h-4 text-emerald-400" />
-                    <span className="text-zinc-200 font-bold">a9f81d3</span>
-                    <span className="text-zinc-500">•</span>
-                    <GitBranch className="w-3.5 h-3.5 text-zinc-400" />
-                    <span className="text-zinc-400">main</span>
+                    <GitCommit className="w-4 h-4 text-[#3E5239]" />
+                    <span className="text-[#1B241B] font-semibold">a9f81d3</span>
+                    <span className="text-[#889684]">•</span>
+                    <GitBranch className="w-3.5 h-3.5 text-[#525E50]" />
+                    <span className="text-[#525E50]">main</span>
                   </div>
 
-                  <div className="text-zinc-400 text-[11px]">
-                    <span className="text-emerald-400 font-semibold">+142</span>{' '}
-                    <span className="text-rose-400 font-semibold">-38</span> in 3 files
+                  <div className="text-[#525E50] text-[11px]">
+                    <span className="text-emerald-700 font-semibold">+142</span>{' '}
+                    <span className="text-rose-700 font-semibold">-38</span> in 3 files
                   </div>
                 </div>
 
                 {/* CI/CD STATUS PILLS */}
                 <div className="grid grid-cols-3 gap-2 text-[11px] font-mono">
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 flex items-center gap-1.5 justify-center">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200/60 text-emerald-700 flex items-center gap-1.5 justify-center font-medium">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600" />
                     <span>Build: Passing</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 flex items-center gap-1.5 justify-center">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <div className="p-2.5 rounded-xl bg-[#EEF2EB] border border-[#D5DEC9] text-[#374B35] flex items-center gap-1.5 justify-center font-medium">
+                    <span className="w-2 h-2 rounded-full bg-[#3E5239]" />
                     <span>TypeCheck: 0</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 flex items-center gap-1.5 justify-center">
-                    <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
+                  <div className="p-2.5 rounded-xl bg-[#F2F4EE] border border-[#E4E8DE] text-[#374B35] flex items-center gap-1.5 justify-center font-medium">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#3E5239]" />
                     <span>Audit Clean</span>
                   </div>
                 </div>
               </div>
 
-              {/* SYNTAX HIGHLIGHTED CODE DIFF PREVIEW */}
+              {/* STRICTLY LIGHT EDITORIAL SYNTAX CODE DIFF PREVIEW */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-mono text-zinc-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
-                    <FileCode className="w-4 h-4 text-indigo-400" />
+                  <span className="text-[#1B241B] font-medium flex items-center gap-1.5">
+                    <FileCode className="w-4 h-4 text-[#3E5239]" />
                     <span>Verified Diff Preview</span>
                   </span>
-                  <span className="text-[11px] font-mono text-zinc-500">
+                  <span className="text-[11px] font-mono text-[#525E50]">
                     src/lib/auth.ts
                   </span>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-[#0d1117] overflow-hidden text-xs font-mono shadow-inner">
-                  {/* File header bar */}
-                  <div className="px-4 py-2 bg-zinc-900/80 border-b border-white/[0.08] flex items-center justify-between text-[11px] text-zinc-400">
-                    <span className="text-zinc-300 font-semibold">
+                <div className="rounded-xl border border-[#E4E8DE] bg-[#F2F4EE]/40 text-[#1B241B] overflow-hidden text-xs font-mono shadow-sm">
+                  {/* Editor Top Bar */}
+                  <div className="px-4 py-2 bg-[#F2F4EE] border-b border-[#E4E8DE] text-[11px] text-[#525E50] flex items-center justify-between font-sans">
+                    <span className="font-mono text-[#1B241B] font-semibold">
                       @@ -14,10 +14,18 @@ export const authOptions: NextAuthOptions = {'{'}
                     </span>
-                    <span className="text-zinc-500">Unified Role Schema</span>
+                    <span className="text-[#525E50]">Strict Schema</span>
                   </div>
 
-                  {/* Diff Content */}
-                  <div className="p-4 space-y-0.5 overflow-x-auto leading-relaxed select-text">
-                    <div className="text-zinc-500 pl-4">  providers: [</div>
-                    <div className="text-zinc-500 pl-4">    CredentialsProvider({'{'}</div>
-                    <div className="text-zinc-500 pl-4">      name: &apos;Credentials&apos;,</div>
-                    <div className="bg-rose-950/40 text-rose-300 px-2 py-0.5 rounded -mx-2 flex">
+                  {/* Clean Light Diff Content */}
+                  <div className="p-4 space-y-0.5 overflow-x-auto leading-relaxed select-text font-mono text-xs">
+                    <div className="text-slate-500 pl-4">  providers: [</div>
+                    <div className="text-slate-500 pl-4">    CredentialsProvider({'{'}</div>
+                    <div className="text-slate-500 pl-4">      name: &apos;Credentials&apos;,</div>
+                    
+                    {/* Removal Lines */}
+                    <div className="bg-rose-50 text-rose-800 border-l-2 border-rose-500 px-2 py-0.5 -mx-2 flex">
                       <span className="w-4 select-none opacity-60">-</span>
                       <span>      // old mock user without role validation</span>
                     </div>
-                    <div className="bg-rose-950/40 text-rose-300 px-2 py-0.5 rounded -mx-2 flex">
+                    <div className="bg-rose-50 text-rose-800 border-l-2 border-rose-500 px-2 py-0.5 -mx-2 flex">
                       <span className="w-4 select-none opacity-60">-</span>
                       <span>      return {'{'} id: &apos;1&apos;, email: credentials?.email {'}'};</span>
                     </div>
-                    <div className="bg-emerald-950/50 text-emerald-300 px-2 py-0.5 rounded -mx-2 flex">
+
+                    {/* Addition Lines */}
+                    <div className="bg-emerald-50 text-emerald-800 border-l-2 border-emerald-500 px-2 py-0.5 -mx-2 flex">
                       <span className="w-4 select-none opacity-60">+</span>
                       <span>      const user = await User.findOne({'{'} email: credentials?.email {'}'});</span>
                     </div>
-                    <div className="bg-emerald-950/50 text-emerald-300 px-2 py-0.5 rounded -mx-2 flex">
+                    <div className="bg-emerald-50 text-emerald-800 border-l-2 border-emerald-500 px-2 py-0.5 -mx-2 flex">
                       <span className="w-4 select-none opacity-60">+</span>
                       <span>      if (!user) throw new Error(&apos;Account not found&apos;);</span>
                     </div>
-                    <div className="bg-emerald-950/50 text-emerald-300 px-2 py-0.5 rounded -mx-2 flex">
+                    <div className="bg-emerald-50 text-emerald-800 border-l-2 border-emerald-500 px-2 py-0.5 -mx-2 flex">
                       <span className="w-4 select-none opacity-60">+</span>
                       <span>      return {'{'} id: user._id, role: user.role, name: user.name {'}'};</span>
                     </div>
-                    <div className="text-zinc-500 pl-4">    {'}'})</div>
-                    <div className="text-zinc-500 pl-4">  ],</div>
-                    <div className="bg-emerald-950/50 text-emerald-300 px-2 py-0.5 rounded -mx-2 flex">
+                    
+                    <div className="text-slate-500 pl-4">    {'}'})</div>
+                    <div className="text-slate-500 pl-4">  ],</div>
+
+                    <div className="bg-emerald-50 text-emerald-800 border-l-2 border-emerald-500 px-2 py-0.5 -mx-2 flex">
                       <span className="w-4 select-none opacity-60">+</span>
                       <span>  callbacks: {'{'}</span>
                     </div>
-                    <div className="bg-emerald-950/50 text-emerald-300 px-2 py-0.5 rounded -mx-2 flex">
+                    <div className="bg-emerald-50 text-emerald-800 border-l-2 border-emerald-500 px-2 py-0.5 -mx-2 flex">
                       <span className="w-4 select-none opacity-60">+</span>
                       <span>    async session({'{'} session, token {'}'}) {'{'}</span>
                     </div>
-                    <div className="bg-emerald-950/50 text-emerald-300 px-2 py-0.5 rounded -mx-2 flex">
+                    <div className="bg-emerald-50 text-emerald-800 border-l-2 border-emerald-500 px-2 py-0.5 -mx-2 flex">
                       <span className="w-4 select-none opacity-60">+</span>
                       <span>      session.user.role = token.role; return session;</span>
                     </div>
-                    <div className="bg-emerald-950/50 text-emerald-300 px-2 py-0.5 rounded -mx-2 flex">
+                    <div className="bg-emerald-50 text-emerald-800 border-l-2 border-emerald-500 px-2 py-0.5 -mx-2 flex">
                       <span className="w-4 select-none opacity-60">+</span>
                       <span>    {'}'}</span>
                     </div>
-                    <div className="text-zinc-500 pl-4">  {'}'}</div>
+                    <div className="text-slate-500 pl-4">  {'}'}</div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* ACTION FOOTER */}
-            <div className="p-6 border-t border-white/10 bg-zinc-900/60 backdrop-blur-xl space-y-3">
+            <div className="p-6 border-t border-slate-200/80 bg-slate-50/60 space-y-3">
               {isApproved ? (
-                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center justify-between text-xs font-semibold">
+                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between text-xs font-semibold">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>This deliverable has been verified and minted.</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>This deliverable has been verified and credential issued.</span>
                   </div>
                   <button
                     onClick={onClose}
-                    className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold transition cursor-pointer"
+                    className="px-3 py-1 rounded-lg bg-white border border-slate-300 text-slate-800 font-semibold hover:bg-slate-100 transition cursor-pointer"
                   >
                     Done
                   </button>
@@ -291,20 +299,21 @@ export default function CodeInspectorDrawer({
                 <div className="flex items-center gap-3">
                   <button
                     onClick={onClose}
-                    className="flex-1 py-3 px-4 rounded-xl border border-white/10 hover:bg-white/[0.05] text-zinc-300 hover:text-white font-bold text-xs transition cursor-pointer"
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-white border border-[#D5DEC9] hover:bg-[#F4F6F1] text-[#1B241B] font-semibold text-xs transition cursor-pointer"
                   >
                     Close Preview
                   </button>
 
                   <button
                     onClick={async () => {
+                      playClickSound();
                       await onApprove(submission._id);
                     }}
                     disabled={isActionLoading}
-                    className="flex-[2] py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-zinc-950 font-extrabold text-xs shadow-lg shadow-emerald-500/25 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="flex-[2] py-2.5 px-4 rounded-xl bg-[#2D3B2D] hover:bg-[#1B241B] text-[#F4F6F1] shadow-sm active:scale-[0.98] transition-transform font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    <Award className="w-4 h-4 text-zinc-950" />
-                    <span>Approve Deliverable &amp; Mint Badge</span>
+                    <Award className="w-4 h-4 text-[#D5DEC9]" />
+                    <span>Approve Deliverable &amp; Issue Credential</span>
                   </button>
                 </div>
               )}

@@ -5,25 +5,28 @@ declare module 'next-auth' {
   interface Session {
     user: {
       id: string;
-      role: 'student' | 'company';
+      role: 'student' | 'company' | 'founder';
       college?: string;
       company?: string;
+      isEmailVerified?: boolean;
     } & DefaultSession['user'];
   }
 
   interface User extends DefaultUser {
     id: string;
-    role: 'student' | 'company';
+    role: 'student' | 'company' | 'founder';
     college?: string;
     company?: string;
+    isEmailVerified?: boolean;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
-    role: 'student' | 'company';
+    role: 'student' | 'company' | 'founder';
     college?: string;
     company?: string;
+    isEmailVerified?: boolean;
   }
 }

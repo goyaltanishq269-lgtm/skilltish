@@ -1,106 +1,128 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Github, Linkedin, Copy, Check, Sparkles, Code2, Heart } from 'lucide-react';
+import {
+  Mail,
+  Github,
+  Linkedin,
+  Copy,
+  Check,
+  ShieldCheck,
+  ExternalLink,
+  MessageSquareCode,
+} from 'lucide-react';
 import { playClickSound } from '@/lib/sounds';
 
 export default function Footer() {
   const [copiedEmail, setCopiedEmail] = useState(false);
-  const email = 'tanishqgoyal.work@gmail.com';
+  const devEmail = 'goyaltanishq269@gmail.com';
 
   const handleCopyEmail = (e: React.MouseEvent) => {
     e.preventDefault();
     playClickSound();
-    navigator.clipboard.writeText(email);
+    navigator.clipboard.writeText(devEmail);
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2000);
   };
 
   return (
-    <footer className="border-t border-white/[0.08] bg-zinc-950/90 backdrop-blur-xl py-10 text-xs text-zinc-400 relative z-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        {/* Top Row: Brand & Engineering Signature */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-white text-base tracking-tight gradient-text">
-                SkillTish
-              </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold">
-                v2.0 Production
-              </span>
-            </div>
-            <p className="text-xs text-zinc-400">
-              Designed &amp; Engineered by{' '}
-              <strong className="text-zinc-200 font-semibold">Tanishq Goyal</strong> • B.Tech Computer Science &amp; Engineering.
-            </p>
-          </div>
+    <footer className="border-t border-[#E3E6DC] bg-white/70 backdrop-blur-md py-12 text-xs text-[#525E50] relative z-20 font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* GLOBAL DEVELOPER & PLATFORM ARCHITECT SUPPORT CARD */}
+        <div className="rounded-2xl border border-[#E4E8DE] bg-gradient-to-br from-[#F4F6F1] via-white to-[#EEF2EB] p-6 sm:p-7 shadow-[0_1px_3px_rgba(40,50,40,0.04)]">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#EEF2EB] text-[#374B35] border border-[#D5DEC9]">
+                <MessageSquareCode className="w-3.5 h-3.5 text-[#4F6850]" />
+                <span>Platform Feedback &amp; Developer Support</span>
+              </div>
 
-          {/* Interactive Contact & Social Pills */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Email Pill with 1-click copy */}
-            <div className="flex items-center rounded-xl bg-white/[0.04] border border-white/10 hover:border-emerald-500/40 transition group">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-[#1B241B] tracking-tight">
+                  Tanishq Goyal{' '}
+                  <span className="text-xs sm:text-sm font-semibold text-[#525E50] font-normal">
+                    (Lead Developer &amp; Platform Architect)
+                  </span>
+                </h3>
+                <p className="text-xs text-[#525E50] max-w-2xl leading-relaxed mt-1">
+                  SkillTish is an open-source proof-of-work protocol designed to replace credential inflation with cryptographic engineering provenance. Reach out directly for platform feedback, technical inquiries, or bug reports.
+                </p>
+              </div>
+            </div>
+
+            {/* Support Channels & Actions */}
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              {/* Bug Report / Support Email */}
+              <div className="flex items-center rounded-xl bg-white border border-[#E3E6DC] shadow-sm hover:border-[#CCD5C3] transition-all overflow-hidden">
+                <a
+                  href={`mailto:${devEmail}`}
+                  className="flex items-center gap-2 px-3.5 py-2 text-[#1B241B] font-semibold text-xs hover:text-[#283528] transition"
+                  title={`Send email to ${devEmail}`}
+                >
+                  <Mail className="w-3.5 h-3.5 text-[#4F6850]" />
+                  <span>Support Email</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={handleCopyEmail}
+                  className="px-2.5 py-2 border-l border-[#E3E6DC] hover:bg-[#F4F6F1] text-[#525E50] transition cursor-pointer"
+                  title="Copy email to clipboard"
+                >
+                  {copiedEmail ? (
+                    <Check className="w-3.5 h-3.5 text-[#374B35]" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5 text-[#AAB79F]" />
+                  )}
+                </button>
+              </div>
+
+              {/* GitHub */}
               <a
-                href={`mailto:${email}`}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-zinc-300 group-hover:text-white font-medium text-xs"
-                title={`Send email to ${email}`}
+                href="https://github.com/goyaltanishq269-lgtm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#2D3B2D] hover:bg-[#1B241B] text-white font-semibold text-xs shadow-sm transition hover:-translate-y-0.5"
+                title="View Lead Developer GitHub"
               >
-                <Mail className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Get in Touch</span>
+                <Github className="w-3.5 h-3.5 text-white" />
+                <span>GitHub</span>
+                <ExternalLink className="w-3 h-3 text-[#AAB79F] ml-0.5" />
               </a>
 
-              <button
-                onClick={handleCopyEmail}
-                className="px-2 py-1.5 border-l border-white/10 hover:bg-white/[0.08] text-zinc-400 hover:text-white rounded-r-xl transition cursor-pointer"
-                title="Copy email to clipboard"
+              {/* LinkedIn */}
+              <a
+                href="https://www.linkedin.com/in/tanishq-goyal-a64279388/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#3E5239] hover:bg-[#283528] text-white font-semibold text-xs shadow-sm transition hover:-translate-y-0.5"
+                title="Connect on LinkedIn"
               >
-                {copiedEmail ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-200" />
-                )}
-              </button>
+                <Linkedin className="w-3.5 h-3.5 text-white" />
+                <span>LinkedIn</span>
+                <ExternalLink className="w-3 h-3 text-[#D5DEC9] ml-0.5" />
+              </a>
             </div>
-
-            {/* GitHub */}
-            <a
-              href="https://github.com/tanishqgoyal"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-medium text-xs transition shadow-sm"
-            >
-              <Github className="w-3.5 h-3.5 text-zinc-300" />
-              <span>GitHub</span>
-            </a>
-
-            {/* LinkedIn */}
-            <a
-              href="https://linkedin.com/in/tanishq-goyal"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/15 hover:bg-indigo-600/25 border border-indigo-500/30 text-indigo-300 hover:text-white font-medium text-xs transition shadow-sm"
-            >
-              <Linkedin className="w-3.5 h-3.5 text-indigo-400" />
-              <span>LinkedIn</span>
-            </a>
           </div>
         </div>
 
-        {/* Bottom Row: Tech Stack & Verification Proof */}
-        <div className="pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3 text-zinc-500 font-mono text-[11px]">
-          <div className="flex items-center gap-2">
-            <span>SkillTish © 2026</span>
+        {/* BOTTOM METADATA & ENTERPRISE PROVENANCE BAR */}
+        <div className="pt-6 border-t border-[#E3E6DC] flex flex-col sm:flex-row items-center justify-between gap-4 text-[#525E50] text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-bold text-[#1B241B] tracking-tight">SkillTish Enterprise</span>
             <span>•</span>
-            <span>Proof-of-Work Verifiable Architecture</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <span className="text-emerald-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Production Ready
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EEF2EB] text-[#374B35] border border-[#D5DEC9] font-medium">
+              v2.0 Verified
             </span>
             <span>•</span>
-            <span>SHA-256 Tamper-Proof Badges</span>
+            <span>Tamper-Proof Proof-of-Work Protocol © 2026</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-[#1B241B] font-medium flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-[#374B35]" />
+              Production Verified Ledger
+            </span>
           </div>
         </div>
       </div>
